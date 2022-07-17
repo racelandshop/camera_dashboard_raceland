@@ -79,7 +79,6 @@ class HacsFrontendDev(HomeAssistantView):
     async def get(self, request, requested_file):  # pylint: disable=unused-argument
         """Handle HACS Web requests."""
         hacs: CameraBase = request.app["hass"].data.get(DOMAIN)
-        hacs.log.info("Helo world from the frontend")
         requested = requested_file.split("/")[-1]
         request = await hacs.session.get(f"{hacs.configuration.frontend_repo_url}/{requested}")
         if request.status == 200:

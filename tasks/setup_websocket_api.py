@@ -1,6 +1,5 @@
 """Register WS API endpoints for HACS."""
 from __future__ import annotations
-from asyncio.log import logger
 
 import sys
 
@@ -33,7 +32,6 @@ from homeassistant.const import (
     CONF_USERNAME,
     CONF_VERIFY_SSL,
     HTTP_BASIC_AUTHENTICATION,
-    HTTP_DIGEST_AUTHENTICATION,
 )
 
 from homeassistant.components.generic.const import (
@@ -42,8 +40,6 @@ from homeassistant.components.generic.const import (
     CONF_LIMIT_REFETCH_TO_URL_CHANGE,
     CONF_STILL_IMAGE_URL,
     CONF_STREAM_SOURCE,
-    DEFAULT_NAME,
-    GET_IMAGE_TIMEOUT,
 )
 
 from homeassistant.components.camera import DEFAULT_CONTENT_TYPE
@@ -125,9 +121,8 @@ def remove_camera_entity(
             msg["id"], websocket_api.const.ERR_NOT_FOUND, "Entity not found"
         )
         return
+        
     entity_registry.async_remove(entity_id)
-    _LOGGER.info(msg)
-
     connection.send_message(websocket_api.result_message(msg["id"], True))
 
 
