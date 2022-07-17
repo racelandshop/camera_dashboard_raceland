@@ -100,11 +100,6 @@ class GenericCamera(Camera):
         self._last_url = None
         self._last_image = None
 
-    @property
-    def supported_features(self):
-        """Return supported features for this camera."""
-        return self._supported_features
-
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
@@ -140,6 +135,11 @@ class GenericCamera(Camera):
 
         self._last_url = url
         return self._last_image
+
+    @property
+    def supported_features(self):
+        """Return supported features for this camera."""
+        return self._supported_features
 
     @property
     def name(self):

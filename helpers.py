@@ -23,17 +23,13 @@ def setup_platform(hass, domain, config, async_add_devices, platform, cls):
     hass.data[domain].adders[platform] = adder
     return True
 
-def get_devices(hass):
-    return hass.data[DOMAIN].devices
+#TODO: Remove these functions when the integration is ready
+# def get_devices(hass):
+#     return hass.data[DOMAIN].devices
 
 
-def get_config(hass, camera_info):
-    config = hass.data[DOMAIN].config.get(CONFIG_DEVICES, {})
-    return config.get(CONF_NAME, {})
-
-def create_entity(hass, camera_info):
-    conf = get_config(hass, camera_info)
-    adder = hass.data[DOMAIN].adders[DOMAIN_GENERIC] #Domain_generic should be replaced by the name of the integration
+def create_entity(hass, camera_info, integration):
+    adder = hass.data[DOMAIN].adders[integration] 
     entity = adder(hass, camera_info)
     return entity
 

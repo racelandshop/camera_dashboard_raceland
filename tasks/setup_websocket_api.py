@@ -21,8 +21,7 @@ from homeassistant.components.websocket_api import (
 from .base import CameraDashboardTask
 from ..base import CameraBase
 from ..const import DOMAIN_GENERIC, DOMAIN, SetupStage
-from ..helpers import get_devices, create_entity, get_config
-
+from ..helpers import create_entity
 
 
 from homeassistant.const import (
@@ -94,10 +93,8 @@ async def register_camera(hass, connection, msg):
         CONF_STREAM_SOURCE: msg.get("stream_url", None)
     }
     
-    device = RacelandCamerasConnection(hass, camera_info)
-    device.connect(connection, msg["id"])
-    get_devices(hass)[msg.get("camera_name")] = device
-
+    new_entity = create_entity(hass, camera_info, integration)
+    _LOGGER.info(new_entity.unique_id)
     connection.send_message(websocket_api.result_message(msg["id"], True))
 
 
@@ -113,6 +110,7 @@ def remove_camera_entity(
     hass: HomeAssistant, connection: ActiveConnection, msg: dict
 ) -> None:
     """Delete device."""
+    #TODO: TypeError: object NoneType can't be used in 'await' expression occurs when I remove the camera
     entity_id = msg["entity_id"]
     entity_registry = er.async_get(hass)
 
@@ -125,30 +123,4 @@ def remove_camera_entity(
     entity_registry.async_remove(entity_id)
     connection.send_message(websocket_api.result_message(msg["id"], True))
 
-
-class RacelandCamerasConnection:
-    def __init__(self, hass, camera_info):
-        self.hass = hass
-        self.camera_info = camera_info
-        self.connection = []
-        self.camera = None
-
-    def connect(self, connection, cid):
-        self.connection.append((connection, cid))
-        self.trigger_update()
-
-        def disconnect():
-            self.connection.remove((connection, cid))
-
-        connection.subscriptions[cid] = disconnect
-
-    def trigger_update(self):
-        # if is_setup_complete(self.hass):
-        self.update(get_config(self.hass, self.camera_info))
-
-    def update(self, data):
-        self.camera = self.camera or create_entity(
-            self.hass, self.camera_info)
-        if self.camera:
-            self.camera.data = data
 
