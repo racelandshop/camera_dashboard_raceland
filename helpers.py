@@ -2,6 +2,7 @@
 import logging
 
 from homeassistant.const import CONF_NAME 
+from homeassistant.util import uuid as uuid_util
 
 from .const import DATA_ADDERS, DOMAIN, DOMAIN_GENERIC
 
@@ -15,7 +16,9 @@ def setup_platform(hass, domain, config, async_add_devices, platform, cls):
     #TODO Deal with potencial overwriting errors
 
     def adder(hass, device_data):
-        entity = cls(hass, device_data)
+        device_name = device_data.get("name", "")
+        identifier = f"{uuid_util.random_uuid_hex()}-{device_name}"
+        entity = cls(hass, device_data, identifier)
         async_add_devices([entity])
         return entity
 

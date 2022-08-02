@@ -94,7 +94,6 @@ async def register_camera(hass, connection, msg):
     }
     
     new_entity = create_entity(hass, camera_info, integration)
-    _LOGGER.info(new_entity.unique_id)
     connection.send_message(websocket_api.result_message(msg["id"], True))
 
 
