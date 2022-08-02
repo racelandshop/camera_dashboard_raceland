@@ -96,7 +96,6 @@ class GenericCamera(Camera):
         self._password = device_info.get(CONF_PASSWORD)
         self._name = device_info.get(CONF_NAME)
         self._still_image_url = device_info.get(CONF_STILL_IMAGE_URL)
-        self._still_image_url = device_info.get(CONF_STILL_IMAGE_URL)
         if (
             not isinstance(self._still_image_url, template_helper.Template)
             and self._still_image_url
