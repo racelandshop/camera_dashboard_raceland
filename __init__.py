@@ -33,7 +33,6 @@ async def async_initialize_integration(
 ) -> bool:
     """Initialize the integration"""
     hass.data[DOMAIN] = cameraBase = CameraBase()
-    cameraBase.log.info("Starting HACS, with config", config)
     if config is not None:
         if DOMAIN not in config:
             return True
