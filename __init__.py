@@ -1,7 +1,6 @@
 """
 Raceland dashboard gives you a powerfull integration that allows the user to add, edit and remove cameras.
 """
-
 from __future__ import annotations
 
 from typing import Any
@@ -23,6 +22,9 @@ from .utils.configuration_schema import camera_dashboard_config
 from .utils.queue_manager import QueueManager
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: camera_dashboard_config()}, extra=vol.ALLOW_EXTRA)
+
+import logging 
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_initialize_integration(
@@ -50,6 +52,7 @@ async def async_initialize_integration(
         if config_entry.source == SOURCE_IMPORT:
             hass.async_create_task(hass.config_entries.async_remove(config_entry.entry_id))
             return False
+
 
         cameraBase.configuration.update_from_dict(
             {
@@ -152,6 +155,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 
 
 async def async_reload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
-    """Reload the HACS config entry."""
+    """Reload the Camera Dashboard config entry."""
     await async_unload_entry(hass, config_entry)
     await async_setup_entry(hass, config_entry)
+

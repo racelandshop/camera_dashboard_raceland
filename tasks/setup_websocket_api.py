@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import sys
 
+
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
@@ -21,7 +22,7 @@ from homeassistant.components.websocket_api import (
 from .base import CameraDashboardTask
 from ..base import CameraBase
 from ..const import DOMAIN_GENERIC, DOMAIN, SetupStage
-from ..helpers import create_entity
+from ..helpers import create_entity, save_to_storage
 
 
 from homeassistant.const import (
@@ -93,7 +94,11 @@ async def register_camera(hass, connection, msg):
         CONF_STREAM_SOURCE: msg.get("stream_url", None)
     }
     
-    new_entity = create_entity(hass, camera_info, integration)
+    entity = create_entity(hass, camera_info, integration) #This will be a short to medium term solution.
+    if entity: 
+        _LOGGER.info(entity._attr_unique_id)#TODO: Figure out a way to extract entity information from this variable here
+        await save_to_storage(hass, camera_info, key = f"camera.{entity._attr_unique_id}") #Save the informatio in the storage (for realoding purposes).
+
     connection.send_message(websocket_api.result_message(msg["id"], True))
 
 

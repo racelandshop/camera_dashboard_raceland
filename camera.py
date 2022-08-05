@@ -7,6 +7,7 @@ import httpx
 import voluptuous as vol
 from typing import Any
 import yarl
+from pathlib import Path
 
 
 from homeassistant.components.camera import (
@@ -34,7 +35,7 @@ from .const import (
     DOMAIN_GENERIC,
 )
 
-from .helpers import setup_platform
+from .helpers import setup_platform, load_from_storage
 from .const import DOMAIN
 
 CONF_CONTENT_TYPE = "content_type"
@@ -55,13 +56,22 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(hass, config, async_add_devices, discovery_info=None):
+    """Set up the generic camera platform."""
     return setup_platform(hass, DOMAIN, config, async_add_devices, DOMAIN_GENERIC, GenericCamera)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    async_add_entities(
-        [GenericCamera(hass, config_entry.options, config_entry.entry_id)]
-    )
+    """Set up the generic camera from a config entry."""
+    _LOGGER.info("async_setup_entry")
+    
+    #list of "keys" to be used to read data from the config entry
+    file_keys = Path(r'.storage/').glob('**/*')
+    file_keys2 = Path(r'.storage/').glob('camera*')
+    _LOGGER.info([x for x in file_keys])
+    _LOGGER.info([x for x in file_keys2])
+    
+
+
     await async_setup_platform(hass, {}, async_add_entities)
 
 
@@ -92,8 +102,6 @@ class GenericCamera(Camera):
         self.hass = hass
         self._attr_unique_id = identifier
         self._authentication = device_info.get(CONF_AUTHENTICATION)
-        self._username = device_info.get(CONF_USERNAME)
-        self._password = device_info.get(CONF_PASSWORD)
         self._name = device_info.get(CONF_NAME)
         self._still_image_url = device_info.get(CONF_STILL_IMAGE_URL)
         if (

@@ -1,5 +1,6 @@
 """CameraDashboard Configuration Schemas."""
 # pylint: disable=dangerous-default-value
+from email.policy import default
 import voluptuous as vol
 
 from ..const import LOCALE
@@ -29,7 +30,7 @@ def camera_dashboard_config(options: dict = {}) -> dict:
             SIDEPANEL_ICON: "mdi:camera",
             SIDEPANEL_TITLE: "Camera",
             FRONTEND_REPO: "",
-            FRONTEND_REPO_URL: "",
+            FRONTEND_REPO_URL: "http://localhost:5000",
         }
     return {
         vol.Optional(SIDEPANEL_TITLE, default=options.get(SIDEPANEL_TITLE)): str,
