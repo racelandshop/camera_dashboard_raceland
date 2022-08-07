@@ -167,11 +167,6 @@ class GenericCamera(Camera):
         self._last_url = url
         return self._last_image
 
-    @property
-    def name(self):
-        """Return the name of this device."""
-        return self._name
-
     async def stream_source(self) -> str | None:
         """Return the source of the stream."""
         if self._stream_source is None:
@@ -192,3 +187,9 @@ class GenericCamera(Camera):
         except TemplateError as err:
             _LOGGER.error("Error parsing template %s: %s", self._stream_source, err)
             return None
+
+            
+    @property
+    def name(self):
+        """Return the name of this device."""
+        return self._name
