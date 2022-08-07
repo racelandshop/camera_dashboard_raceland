@@ -62,15 +62,12 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the generic camera from a config entry."""
-    _LOGGER.info("async_setup_entry")
-    
-    #list of "keys" to be used to read data from the config entry
-    file_keys = Path(r'.storage/').glob('**/*')
-    file_keys2 = Path(r'.storage/').glob('camera*')
-    _LOGGER.info([x for x in file_keys])
-    _LOGGER.info([x for x in file_keys2])
-    
-
+    _LOGGER.info("async_setup_entry")    
+    camera_files = Path(r'.storage/').glob('camera*')
+    for cam_file in camera_files: 
+        cam_file_format = cam_file.name.split('.storage/')[0]
+        camera_config = await load_from_storage(hass, cam_file_format)
+        async_add_entities([GenericCamera(hass, camera_config, camera_config["id"])]) 
 
     await async_setup_platform(hass, {}, async_add_entities)
 

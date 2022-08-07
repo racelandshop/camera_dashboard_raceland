@@ -35,9 +35,9 @@ def create_entity(hass, camera_info, integration):
     return entity
 
 
-async def load_from_storage(hass): 
+async def load_from_storage(hass, key): 
     """Load devices from the storage."""
-    store = Store(hass, version = 1, key = "broadlink_devices")
+    store = Store(hass, version = 1, key = key)
     devices = await store.async_load()
     return devices if devices is not None else {}
 
