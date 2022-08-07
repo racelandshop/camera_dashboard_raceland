@@ -62,7 +62,8 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the generic camera from a config entry."""
-    _LOGGER.info("async_setup_entry")    
+    #Load up camera entities from storage. 
+    # This is done here because I can not figure out a way to save the information just in the core.entity_registry.
     camera_files = Path(r'.storage/').glob('camera*')
     for cam_file in camera_files: 
         cam_file_format = cam_file.name.split('.storage/')[0]
@@ -126,6 +127,7 @@ class GenericCamera(Camera):
         if device_info.get(CONF_USE_WALLCLOCK_AS_TIMESTAMPS):
             self.stream_options[CONF_USE_WALLCLOCK_AS_TIMESTAMPS] = True
 
+
         self._last_url = None
         self._last_image = None
 
@@ -133,7 +135,7 @@ class GenericCamera(Camera):
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return a still image response from the camera."""
-        if not self._still_image_url:
+        if not self._still_image_url: 
             if not self.stream:
                 await self.async_create_stream()
             if self.stream:
