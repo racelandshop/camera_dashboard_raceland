@@ -21,8 +21,8 @@ from homeassistant.components.websocket_api import (
 
 from .base import CameraDashboardTask
 from ..base import CameraBase
-from ..const import DOMAIN_GENERIC, DOMAIN, SetupStage
-from ..helpers import create_entity, save_to_storage
+from ..const import DOMAIN_GENERIC, DOMAIN, SetupStage, STORAGE_FILE
+from ..helpers import create_entity, load_from_storage, save_to_storage
 
 
 from homeassistant.const import (
@@ -94,12 +94,12 @@ async def register_camera(hass, connection, msg):
         CONF_STREAM_SOURCE: msg.get("stream_url", None)
     }
     
-    _LOGGER.info(camera_info)
-    entity = create_entity(hass, camera_info, integration) #This will be a short to medium term solution.
+    entity = create_entity(hass, camera_info, integration) 
     if entity: 
-        _LOGGER.info(entity._attr_unique_id)
         camera_info["id"] = entity._attr_unique_id
-        await save_to_storage(hass, camera_info, key = f"camera.{entity._attr_unique_id}") #Save the informatio in the storage (for realoding purposes).
+        camera_list = await load_from_storage(hass, STORAGE_FILE)
+        camera_list.append(camera_info)
+        await save_to_storage(hass, camera_list, key = STORAGE_FILE)
 
     connection.send_message(websocket_api.result_message(msg["id"], True))
 
@@ -112,7 +112,7 @@ async def register_camera(hass, connection, msg):
 )
 @websocket_api.require_admin
 @websocket_api.async_response
-def remove_camera_entity(
+async def remove_camera_entity(
     hass: HomeAssistant, connection: ActiveConnection, msg: dict
 ) -> None:
     """Delete device."""
@@ -120,13 +120,23 @@ def remove_camera_entity(
     entity_id = msg["entity_id"]
     entity_registry = er.async_get(hass)
 
-    if not (entity := entity_registry.async_get(entity_id)):
+    if not (entity_registry.async_get(entity_id)):
         connection.send_error(
             msg["id"], websocket_api.const.ERR_NOT_FOUND, "Entity not found"
         )
         return
-        
-    entity_registry.async_remove(entity_id)
+    
+    entity_registry.async_remove(entity_id) #Remove the entity from the registry. 
+
+    #remove from storage 
+    camera_list = await load_from_storage(hass, STORAGE_FILE)
+    for cam in camera_list:
+        if cam["name"] == entity_id.split(".")[1]:
+            camera_list.remove(cam)
+            await save_to_storage(hass, camera_list, key = STORAGE_FILE)
+            break
+
+    
     connection.send_message(websocket_api.result_message(msg["id"], True))
 
 

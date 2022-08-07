@@ -39,7 +39,7 @@ async def load_from_storage(hass, key):
     """Load devices from the storage."""
     store = Store(hass, version = 1, key = key)
     devices = await store.async_load()
-    return devices if devices is not None else {}
+    return devices if devices is not None else []
 
 async def save_to_storage(hass, data, key):
     """Save data to storage."""

@@ -10,7 +10,7 @@ DATA_ADDERS = "adders"
 DOMAIN_GENERIC = "generic"
 PLATFORM = [Platform.CAMERA]
 PACKAGE_NAME = "custom_components.camera_dashboard_raceland"
-
+STORAGE_FILE = "cameras_information"
 
 class ConfigurationType(str, Enum):
     YAML = "yaml"

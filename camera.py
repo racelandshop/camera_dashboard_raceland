@@ -33,6 +33,7 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .const import (
     DOMAIN_GENERIC,
+    STORAGE_FILE
 )
 
 from .helpers import setup_platform, load_from_storage
@@ -64,11 +65,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the generic camera from a config entry."""
     #Load up camera entities from storage. 
     # This is done here because I can not figure out a way to save the information just in the core.entity_registry.
-    camera_files = Path(r'.storage/').glob('camera*')
-    for cam_file in camera_files: 
-        cam_file_format = cam_file.name.split('.storage/')[0]
-        camera_config = await load_from_storage(hass, cam_file_format)
-        async_add_entities([GenericCamera(hass, camera_config, camera_config["id"])]) 
+    registered_cameras = await load_from_storage(hass, STORAGE_FILE)
+    for cam_file in registered_cameras: 
+        async_add_entities([GenericCamera(hass, cam_file, cam_file["id"])]) 
 
     await async_setup_platform(hass, {}, async_add_entities)
 
@@ -188,7 +187,7 @@ class GenericCamera(Camera):
             _LOGGER.error("Error parsing template %s: %s", self._stream_source, err)
             return None
 
-            
+
     @property
     def name(self):
         """Return the name of this device."""
