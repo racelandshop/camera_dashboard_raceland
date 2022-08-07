@@ -96,7 +96,8 @@ async def register_camera(hass, connection, msg):
     
     entity = create_entity(hass, camera_info, integration) #This will be a short to medium term solution.
     if entity: 
-        _LOGGER.info(entity._attr_unique_id)#TODO: Figure out a way to extract entity information from this variable here
+        _LOGGER.info(entity._attr_unique_id)
+        camera_info["id"] = entity._attr_unique_id
         await save_to_storage(hass, camera_info, key = f"camera.{entity._attr_unique_id}") #Save the informatio in the storage (for realoding purposes).
 
     connection.send_message(websocket_api.result_message(msg["id"], True))
