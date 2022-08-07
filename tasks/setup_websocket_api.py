@@ -83,7 +83,7 @@ async def register_camera(hass, connection, msg):
     integration = msg["integration"]
     camera_info = {
         CONF_NAME: msg.get("camera_name"), 
-        CONF_STILL_IMAGE_URL: msg.get("statis_image_url"),
+        CONF_STILL_IMAGE_URL: msg.get("static_image_url"),
         CONF_AUTHENTICATION: msg.get(CONF_AUTHENTICATION, HTTP_BASIC_AUTHENTICATION), 
         CONF_LIMIT_REFETCH_TO_URL_CHANGE: msg.get(CONF_LIMIT_REFETCH_TO_URL_CHANGE, False),
         CONF_CONTENT_TYPE: msg.get(CONF_CONTENT_TYPE, DEFAULT_CONTENT_TYPE), 
@@ -94,6 +94,7 @@ async def register_camera(hass, connection, msg):
         CONF_STREAM_SOURCE: msg.get("stream_url", None)
     }
     
+    _LOGGER.info(camera_info)
     entity = create_entity(hass, camera_info, integration) #This will be a short to medium term solution.
     if entity: 
         _LOGGER.info(entity._attr_unique_id)
