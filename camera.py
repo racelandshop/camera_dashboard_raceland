@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from html import entities
 import logging
 import httpx
 import voluptuous as vol
@@ -9,6 +10,7 @@ from typing import Any
 import yarl
 from pathlib import Path
 
+from homeassistant.helpers import entity_registry as er
 
 from homeassistant.components.camera import (
     SUPPORT_STREAM,
@@ -65,6 +67,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the generic camera from a config entry."""
     #Load up camera entities from storage. 
     # This is done here because I can not figure out a way to save the information just in the core.entity_registry.
+
+    # entity_registry = await er.async_get_registry(hass)
+    # _LOGGER.info(entity_registry.async_get("camera.teste"))
+
     registered_cameras = await load_from_storage(hass, STORAGE_FILE)
     for cam_file in registered_cameras: 
         async_add_entities([GenericCamera(hass, cam_file, cam_file["id"])]) 
