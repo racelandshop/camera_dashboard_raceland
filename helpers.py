@@ -45,3 +45,8 @@ async def save_to_storage(hass, data, key):
     """Save data to storage."""
     store = Store(hass, version = 1, key = key)
     await store.async_save(data)
+
+
+def get_domain_camera(entities): 
+    """Returns a dicitonary of unique_id key and camera entities values registered in this domain."""
+    return {entity.unique_id: entity for entity in entities.values() if entity.entity_id.split(".")[0] == "camera" and entity.platform == DOMAIN}

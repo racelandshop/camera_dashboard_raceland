@@ -63,8 +63,6 @@ async def async_initialize_integration(
             }
         )
 
-    cameraBase.log.info("Passed the second ifelse")
-
     integration = await async_get_integration(hass, DOMAIN)
 
     await cameraBase.async_set_stage(None)
