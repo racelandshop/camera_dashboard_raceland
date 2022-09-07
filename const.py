@@ -12,6 +12,9 @@ PLATFORM = [Platform.CAMERA]
 PACKAGE_NAME = "custom_components.camera_dashboard_raceland"
 STORAGE_FILE = "cameras_information"
 
+CONF_INTEGRATION = "integration"
+CONF_RTSP_TRANSPORT = "rtsp_transport"
+
 class ConfigurationType(str, Enum):
     YAML = "yaml"
     CONFIG_ENTRY = "config_entry"
