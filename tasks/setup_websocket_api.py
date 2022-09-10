@@ -33,6 +33,8 @@ from homeassistant.const import (
     HTTP_DIGEST_AUTHENTICATION,
 )
 from homeassistant.components.generic.const import (
+    CONF_STILL_IMAGE_URL,
+    CONF_STREAM_SOURCE, 
     CONF_CONTENT_TYPE,
     CONF_FRAMERATE,
     CONF_LIMIT_REFETCH_TO_URL_CHANGE,
@@ -68,9 +70,9 @@ class Task(CameraDashboardTask):
     {
         vol.Required("type"): "raceland-camera-dashboard/register_camera",
         vol.Required(CONF_INTEGRATION): cv.string,
-        vol.Required("camera_name"): cv.string,
-        vol.Optional("static_image_url"): cv.string,
-        vol.Optional("stream_url"): cv.string,
+        vol.Required(CONF_NAME): cv.string,
+        vol.Optional(CONF_STILL_IMAGE_URL): cv.string,
+        vol.Optional(CONF_STREAM_SOURCE): cv.string,
         vol.Optional(CONF_USERNAME): cv.string,
         vol.Optional(CONF_PASSWORD): cv.string,
         vol.Optional("advanced_options"): cv.boolean, #This options is just to ensure the backend can handle the information if there advanced options are picked
@@ -91,9 +93,9 @@ async def register_camera(hass, connection, msg):
     integration = msg["integration"]
     camera_info = {
         CONF_INTEGRATION: msg.get(CONF_INTEGRATION),
-        CONF_NAME: msg.get("camera_name"),  #TODO, Change name, static and stream url to CONF
-        CONF_STILL_IMAGE_URL: msg.get("static_image_url", None),
-        CONF_STREAM_SOURCE: msg.get("stream_url", None),
+        CONF_NAME: msg.get(CONF_NAME),
+        CONF_STILL_IMAGE_URL: msg.get(CONF_STILL_IMAGE_URL, None),
+        CONF_STREAM_SOURCE: msg.get(CONF_STREAM_SOURCE, None),
         CONF_AUTHENTICATION: msg.get(CONF_AUTHENTICATION, HTTP_BASIC_AUTHENTICATION).lower(), 
         CONF_LIMIT_REFETCH_TO_URL_CHANGE: msg.get(CONF_LIMIT_REFETCH_TO_URL_CHANGE, False),
         CONF_CONTENT_TYPE: msg.get(CONF_CONTENT_TYPE, DEFAULT_CONTENT_TYPE), 
