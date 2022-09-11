@@ -73,7 +73,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
     registered_cameras = await load_from_storage(hass, STORAGE_FILE)
     for cam_file in registered_cameras: 
-        async_add_entities([GenericCamera(hass, cam_file, cam_file["id"])]) 
+        async_add_entities([GenericCamera(hass, cam_file, cam_file["unique_id"])]) 
 
     await async_setup_platform(hass, {}, async_add_entities)
 
@@ -106,14 +106,14 @@ class GenericCamera(Camera):
         self._attr_unique_id = identifier
         self._authentication = device_info.get(CONF_AUTHENTICATION)
         self._name = device_info.get(CONF_NAME)
-        self._still_image_url = device_info.get(CONF_STILL_IMAGE_URL)
+        self.still_image_url = device_info.get(CONF_STILL_IMAGE_URL)
         if (
-            not isinstance(self._still_image_url, template_helper.Template)
-            and self._still_image_url
+            not isinstance(self.still_image_url, template_helper.Template)
+            and self.still_image_url
         ):
-            self._still_image_url = cv.template(self._still_image_url)
-        if self._still_image_url:
-            self._still_image_url.hass = hass
+            self.still_image_url = cv.template(self.still_image_url)
+        if self.still_image_url:
+            self.still_image_url.hass = hass
         self._stream_source = device_info.get(CONF_STREAM_SOURCE)
         if self._stream_source:
             if not isinstance(self._stream_source, template_helper.Template):
@@ -140,16 +140,16 @@ class GenericCamera(Camera):
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return a still image response from the camera."""
-        if not self._still_image_url: 
+        if not self.still_image_url: 
             if not self.stream:
                 await self.async_create_stream()
             if self.stream:
                 return await self.stream.async_get_image(width, height)
             return None
         try:
-            url = self._still_image_url.async_render(parse_result=False)
+            url = self.still_image_url.async_render(parse_result=False)
         except TemplateError as err:
-            _LOGGER.error("Error parsing template %s: %s", self._still_image_url, err)
+            _LOGGER.error("Error parsing template %s: %s", self.still_image_url, err)
             return self._last_image
 
         if url == self._last_url and self._limit_refetch:

@@ -17,9 +17,10 @@ _LOGGER = logging.getLogger(__name__)
 def setup_platform(hass, domain, config, async_add_devices, platform, cls):
     #TODO Deal with potencial overwriting errors
 
-    def adder(hass, device_data):
+    def adder(hass, device_data, identifier):
         device_name = device_data.get("name", "")
-        identifier = f"camera-{uuid_util.random_uuid_hex()}-{device_name}"
+        if (identifier == None): 
+            identifier = f"camera-{uuid_util.random_uuid_hex()}-{device_name}"
         entity = cls(hass, device_data, identifier)
         async_add_devices([entity])
         return entity
@@ -29,9 +30,9 @@ def setup_platform(hass, domain, config, async_add_devices, platform, cls):
     return True
 
 
-def create_entity(hass, camera_info, integration):
+def create_entity(hass, camera_info, integration, identifier = None):
     adder = hass.data[DOMAIN].adders[integration] 
-    entity = adder(hass, camera_info)
+    entity = adder(hass, camera_info, identifier = identifier)
     return entity
 
 
