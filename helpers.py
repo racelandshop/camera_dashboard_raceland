@@ -14,19 +14,22 @@ CONFIG_DEVICES = "devices"
 
 _LOGGER = logging.getLogger(__name__)
 
-def setup_platform(hass, domain, config, async_add_devices, platform, cls):
+def setup_platform(hass, domain, config, async_add_devices, platform_map):
     #TODO Deal with potencial overwriting errors
 
-    def adder(hass, device_data, identifier):
-        device_name = device_data.get("name", "")
-        if (identifier == None): 
-            identifier = f"camera-{uuid_util.random_uuid_hex()}-{device_name}"
-        entity = cls(hass, device_data, identifier)
-        async_add_devices([entity])
-        return entity
+    for platform in platform_map.keys(): 
+        cls = platform_map[platform]
 
-    
-    hass.data[domain].adders[platform] = adder
+        def adder(hass, device_data, identifier):
+            device_name = device_data.get("name", "")
+            if (identifier == None): 
+                identifier = f"camera-{uuid_util.random_uuid_hex()}-{device_name}"
+            entity = cls(hass, device_data, identifier)
+            async_add_devices([entity])
+            return entity
+
+        
+        hass.data[domain].adders[platform] = adder
     return True
 
 

@@ -1,21 +1,29 @@
 """Support for IP Cameras."""
 from __future__ import annotations
 
-from collections.abc import Mapping
-from html import entities
+from collections.abc import Mapping, Iterable
+from contextlib import closing
+from requests.auth import HTTPBasicAuth, HTTPDigestAuth
+import asyncio
 import logging
 import httpx
-import voluptuous as vol
+import aiohttp
+from aiohttp import web
+import async_timeout
+import requests
 from typing import Any
 import yarl
-from pathlib import Path
+
 
 from homeassistant.helpers import entity_registry as er
-
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.aiohttp_client import (
+    async_aiohttp_proxy_web,
+    async_get_clientsession,
+)
 from homeassistant.components.camera import (
     SUPPORT_STREAM,
     Camera,
-    #CameraEntityFeature,
 )
 from homeassistant.const import (
     CONF_AUTHENTICATION,
@@ -23,6 +31,7 @@ from homeassistant.const import (
     CONF_PASSWORD,
     CONF_USERNAME,
     CONF_VERIFY_SSL,
+    HTTP_BASIC_AUTHENTICATION,
     HTTP_DIGEST_AUTHENTICATION,
 )
 from homeassistant.core import HomeAssistant
@@ -35,6 +44,7 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .const import (
     DOMAIN_GENERIC,
+    DOMAIN_MJPEG,
     STORAGE_FILE
 )
 
@@ -57,10 +67,10 @@ CONF_USE_WALLCLOCK_AS_TIMESTAMPS = "use_wallclock_as_timestamps"
 
 _LOGGER = logging.getLogger(__name__)
 
-
+#DOMAIN_MJPEG
 async def async_setup_platform(hass, config, async_add_devices, discovery_info=None):
     """Set up the generic camera platform."""
-    return setup_platform(hass, DOMAIN, config, async_add_devices, DOMAIN_GENERIC, GenericCamera)
+    return setup_platform(hass, DOMAIN, config, async_add_devices, {DOMAIN_GENERIC: GenericCamera, DOMAIN_MJPEG: MjpegCamera})
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -72,8 +82,12 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     # _LOGGER.info(entity_registry.async_get("camera.teste"))
 
     registered_cameras = await load_from_storage(hass, STORAGE_FILE)
-    for cam_file in registered_cameras: 
-        async_add_entities([GenericCamera(hass, cam_file, cam_file["unique_id"])]) 
+    for cam_data in registered_cameras: 
+        if cam_data["integration"] == DOMAIN_GENERIC: 
+            async_add_entities([GenericCamera(hass, cam_data, cam_data["unique_id"])]) 
+        elif cam_data["integration"] == DOMAIN_MJPEG: 
+            async_add_entities([MjpegCamera(hass, cam_data, cam_data["unique_id"])]) 
+
 
     await async_setup_platform(hass, {}, async_add_entities)
 
@@ -105,20 +119,23 @@ class GenericCamera(Camera):
         self.hass = hass
         self._attr_unique_id = identifier
         self._authentication = device_info.get(CONF_AUTHENTICATION)
-        self._name = device_info.get(CONF_NAME)
+        self._name = device_info[CONF_NAME]
         self.still_image_url = device_info.get(CONF_STILL_IMAGE_URL)
         if (
             not isinstance(self.still_image_url, template_helper.Template)
             and self.still_image_url
         ):
             self.still_image_url = cv.template(self.still_image_url)
+
         if self.still_image_url:
             self.still_image_url.hass = hass
+        
         self._stream_source = device_info.get(CONF_STREAM_SOURCE)
         if self._stream_source:
             if not isinstance(self._stream_source, template_helper.Template):
                 self._stream_source = cv.template(self._stream_source)
             self._stream_source.hass = hass
+        
         self._limit_refetch = device_info[CONF_LIMIT_REFETCH_TO_URL_CHANGE]
         self._attr_frame_interval = 1 / device_info[CONF_FRAMERATE]
         self._attr_supported_features = (
@@ -198,3 +215,129 @@ class GenericCamera(Camera):
     def name(self):
         """Return the name of this device."""
         return self._name
+
+
+class MjpegCamera(Camera):
+    """An implementation of an IP camera that is reachable over a URL."""
+
+    def __init__(
+        self,
+        hass, 
+        device_info,
+        unique_id
+    ) -> None:
+        """Initialize a MJPEG camera."""
+        super().__init__()
+        self.hass = hass
+        self._attr_name = device_info[CONF_NAME]
+        self._authentication = device_info.get(CONF_AUTHENTICATION)
+        self._still_image_url = device_info.get(CONF_STILL_IMAGE_URL)    
+        self._mjpeg_url = device_info.get(CONF_STREAM_SOURCE) 
+        
+        self._auth = None
+        self._username = device_info.get(CONF_USERNAME)
+        self._password = device_info.get(CONF_PASSWORD)
+        if (
+            self._username
+            and self._password
+            and self._authentication == HTTP_BASIC_AUTHENTICATION
+        ):
+            self._auth = aiohttp.BasicAuth(self._username, password=self._password)
+        
+        self._verify_ssl = device_info.get(CONF_VERIFY_SSL, True)
+        self._attr_frame_interval = 1 / device_info[CONF_FRAMERATE]
+
+        if unique_id is not None:
+            self._attr_unique_id = unique_id
+        if device_info is not None:
+            self._attr_device_info = device_info
+        
+        
+
+    async def async_camera_image(
+        self, width: int | None = None, height: int | None = None
+    ) -> bytes | None:
+        """Return a still image response from the camera."""
+        # DigestAuth is not supported
+        if (
+            self._authentication == HTTP_DIGEST_AUTHENTICATION
+            or self._still_image_url is None
+        ):
+            image = await self.hass.async_add_executor_job(self.camera_image)
+            return image
+
+        websession = async_get_clientsession(self.hass, verify_ssl=self._verify_ssl)
+        try:
+            async with async_timeout.timeout(10):
+                response = await websession.get(self._still_image_url, auth=self._auth)
+
+                image = await response.read()
+                return image
+
+        except asyncio.TimeoutError:
+            _LOGGER.error("Timeout getting camera image from %s", self.name)
+
+        except aiohttp.ClientError as err:
+            _LOGGER.error("Error getting new camera image from %s: %s", self.name, err)
+
+        return None
+
+    def camera_image(
+        self, width: int | None = None, height: int | None = None
+    ) -> bytes | None:
+        """Return a still image response from the camera."""
+        if self._username and self._password:
+            if self._authentication == HTTP_DIGEST_AUTHENTICATION:
+                auth: HTTPDigestAuth | HTTPBasicAuth = HTTPDigestAuth(
+                    self._username, self._password
+                )
+            else:
+                auth = HTTPBasicAuth(self._username, self._password)
+            req = requests.get(
+                self._mjpeg_url,
+                auth=auth,
+                stream=True,
+                timeout=10,
+                verify=self._verify_ssl,
+            )
+        else:
+            req = requests.get(self._mjpeg_url, stream=True, timeout=10)
+
+        with closing(req) as response:
+            return extract_image_from_mjpeg(response.iter_content(102400))
+
+    async def handle_async_mjpeg_stream(
+        self, request: web.Request
+    ) -> web.StreamResponse | None:
+        """Generate an HTTP MJPEG stream from the camera."""
+        # aiohttp don't support DigestAuth -> Fallback
+        if self._authentication == HTTP_DIGEST_AUTHENTICATION:
+            return await super().handle_async_mjpeg_stream(request)
+
+        # connect to stream
+        websession = async_get_clientsession(self.hass, verify_ssl=self._verify_ssl)
+        stream_coro = websession.get(self._mjpeg_url, auth=self._auth)
+
+        return await async_aiohttp_proxy_web(self.hass, request, stream_coro)
+
+
+
+def extract_image_from_mjpeg(stream: Iterable[bytes]) -> bytes | None:
+    """Take in a MJPEG stream object, return the jpg from it."""
+    data = b""
+
+    for chunk in stream:
+        data += chunk
+        jpg_end = data.find(b"\xff\xd9")
+
+        if jpg_end == -1:
+            continue
+
+        jpg_start = data.find(b"\xff\xd8")
+
+        if jpg_start == -1:
+            continue
+
+        return data[jpg_start : jpg_end + 2]
+
+    return None
