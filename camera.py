@@ -67,7 +67,7 @@ CONF_USE_WALLCLOCK_AS_TIMESTAMPS = "use_wallclock_as_timestamps"
 
 _LOGGER = logging.getLogger(__name__)
 
-#DOMAIN_MJPEG
+
 async def async_setup_platform(hass, config, async_add_devices, discovery_info=None):
     """Set up the generic camera platform."""
     return setup_platform(hass, DOMAIN, config, async_add_devices, {DOMAIN_GENERIC: GenericCamera, DOMAIN_MJPEG: MjpegCamera})
@@ -76,10 +76,6 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the generic camera from a config entry."""
     #Load up camera entities from storage. 
-    # This is done here because I can not figure out a way to save the information just in the core.entity_registry.
-
-    # entity_registry = await er.async_get_registry(hass)
-    # _LOGGER.info(entity_registry.async_get("camera.teste"))
 
     registered_cameras = await load_from_storage(hass, STORAGE_FILE)
     for cam_data in registered_cameras: 
@@ -106,30 +102,28 @@ def generate_auth(device_info: Mapping[str, Any]) -> httpx.Auth | None:
 
 
 # Class for generic gamera integration
+
 class GenericCamera(Camera):
     """A generic implementation of an IP camera."""
-    def __init__(
-        self,
+
+    def __init__(self,
         hass: HomeAssistant,
         device_info: Mapping[str, Any],
         identifier: str
     ) -> None:
+        
         """Initialize a generic camera."""
+        _LOGGER.info("Camera cool Generic")
         super().__init__()
         self.hass = hass
         self._attr_unique_id = identifier
         self._authentication = device_info.get(CONF_AUTHENTICATION)
-        self._name = device_info[CONF_NAME]
-        self.still_image_url = device_info.get(CONF_STILL_IMAGE_URL)
-        if (
-            not isinstance(self.still_image_url, template_helper.Template)
-            and self.still_image_url
-        ):
-            self.still_image_url = cv.template(self.still_image_url)
-
-        if self.still_image_url:
-            self.still_image_url.hass = hass
+        self._name = device_info.get(CONF_NAME)
         
+        self._still_image_url = device_info.get(CONF_STILL_IMAGE_URL)
+        if (not isinstance(self._still_image_url, template_helper.Template) and self._still_image_url):
+            self._still_image_url = cv.template(self._still_image_url)
+
         self._stream_source = device_info.get(CONF_STREAM_SOURCE)
         if self._stream_source:
             if not isinstance(self._stream_source, template_helper.Template):
@@ -138,35 +132,49 @@ class GenericCamera(Camera):
         
         self._limit_refetch = device_info[CONF_LIMIT_REFETCH_TO_URL_CHANGE]
         self._attr_frame_interval = 1 / device_info[CONF_FRAMERATE]
-        self._attr_supported_features = (
-            SUPPORT_STREAM if self._stream_source else 0
-        )
+        self._supported_features = SUPPORT_STREAM if self._stream_source else 0
         self.content_type = device_info[CONF_CONTENT_TYPE]
         self.verify_ssl = device_info[CONF_VERIFY_SSL]
         if device_info.get(CONF_RTSP_TRANSPORT):
-            self.stream_options[CONF_RTSP_TRANSPORT] = device_info[CONF_RTSP_TRANSPORT]
-        self._auth = generate_auth(device_info)
-        if device_info.get(CONF_USE_WALLCLOCK_AS_TIMESTAMPS):
-            self.stream_options[CONF_USE_WALLCLOCK_AS_TIMESTAMPS] = True
+            self.stream_options[FFMPEG_OPTION_MAP[CONF_RTSP_TRANSPORT]] = device_info[
+                CONF_RTSP_TRANSPORT
+            ]
 
+        username = device_info.get(CONF_USERNAME)
+        password = device_info.get(CONF_PASSWORD)
+        self._username = username
+        self._password = password
+
+        if username and password:
+            if self._authentication == HTTP_DIGEST_AUTHENTICATION:
+                self._auth = httpx.DigestAuth(username=username, password=password)
+            else:
+                self._auth = httpx.BasicAuth(username=username, password=password)
+        else:
+            self._auth = None
 
         self._last_url = None
         self._last_image = None
+
+    @property
+    def supported_features(self):
+        """Return supported features for this camera."""
+        return self._supported_features
 
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return a still image response from the camera."""
-        if not self.still_image_url: 
+        if not self._still_image_url:
             if not self.stream:
                 await self.async_create_stream()
             if self.stream:
                 return await self.stream.async_get_image(width, height)
             return None
         try:
-            url = self.still_image_url.async_render(parse_result=False)
+            url = self._still_image_url.async_render(parse_result=False)
         except TemplateError as err:
-            _LOGGER.error("Error parsing template %s: %s", self.still_image_url, err)
+            _LOGGER.error("Error parsing template %s: %s", self._still_image_url, err)
             return self._last_image
 
         if url == self._last_url and self._limit_refetch:
@@ -189,7 +197,12 @@ class GenericCamera(Camera):
         self._last_url = url
         return self._last_image
 
-    async def stream_source(self) -> str | None:
+    @property
+    def name(self):
+        """Return the name of this device."""
+        return self._name
+
+    async def stream_source(self):
         """Return the source of the stream."""
         if self._stream_source is None:
             return None
@@ -211,11 +224,6 @@ class GenericCamera(Camera):
             return None
 
 
-    @property
-    def name(self):
-        """Return the name of this device."""
-        return self._name
-
 
 class MjpegCamera(Camera):
     """An implementation of an IP camera that is reachable over a URL."""
@@ -228,6 +236,7 @@ class MjpegCamera(Camera):
     ) -> None:
         """Initialize a MJPEG camera."""
         super().__init__()
+        _LOGGER.info("Camera cool MJPEG") 
         self.hass = hass
         self._attr_name = device_info[CONF_NAME]
         self._authentication = device_info.get(CONF_AUTHENTICATION)
