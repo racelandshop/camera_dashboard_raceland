@@ -93,10 +93,10 @@ class Task(CameraDashboardTask):
 @websocket_api.require_admin
 @websocket_api.async_response
 async def register_camera(hass, connection, msg):
-    integration = msg["integration"]
+    integration = msg[CONF_INTEGRATION]
     camera_info = {
-        CONF_INTEGRATION: msg.get(CONF_INTEGRATION),
-        CONF_NAME: msg.get(CONF_NAME),
+        CONF_INTEGRATION: msg[CONF_INTEGRATION],
+        CONF_NAME: msg[CONF_NAME],
         CONF_STILL_IMAGE_URL: msg.get(CONF_STILL_IMAGE_URL, None),
         CONF_STREAM_SOURCE: msg.get(CONF_STREAM_SOURCE, None),
         CONF_AUTHENTICATION: msg.get(CONF_AUTHENTICATION, HTTP_BASIC_AUTHENTICATION).lower(), 
@@ -146,23 +146,25 @@ async def register_camera(hass, connection, msg):
 @websocket_api.require_admin
 @websocket_api.async_response
 async def edit_camera(hass, connection, msg):
-    integration = msg["integration"]
+    integration = msg[CONF_INTEGRATION]
     camera_info = {
-        CONF_INTEGRATION: msg.get(CONF_INTEGRATION),
-        CONF_NAME: msg.get(CONF_NAME),
+        CONF_INTEGRATION: msg[CONF_INTEGRATION],
+        CONF_NAME: msg[CONF_NAME],
         CONF_STILL_IMAGE_URL: msg.get(CONF_STILL_IMAGE_URL, None),
         CONF_STREAM_SOURCE: msg.get(CONF_STREAM_SOURCE, None),
         CONF_AUTHENTICATION: msg.get(CONF_AUTHENTICATION, HTTP_BASIC_AUTHENTICATION).lower(), 
         CONF_LIMIT_REFETCH_TO_URL_CHANGE: msg.get(CONF_LIMIT_REFETCH_TO_URL_CHANGE, False),
         CONF_CONTENT_TYPE: msg.get(CONF_CONTENT_TYPE, DEFAULT_CONTENT_TYPE), 
-        CONF_RTSP_TRANSPORT: msg.get(CONF_RTSP_TRANSPORT, None),
+        CONF_RTSP_TRANSPORT: msg.get(CONF_RTSP_TRANSPORT),
         CONF_FRAMERATE: msg.get(CONF_FRAMERATE, 2), 
         CONF_VERIFY_SSL: msg.get(CONF_VERIFY_SSL, True),
         CONF_USERNAME: msg.get(CONF_USERNAME, None), 
         CONF_PASSWORD: msg.get(CONF_PASSWORD, None), 
         "unique_id": msg["unique_id"]
     }
-    
+
+    if camera_info[CONF_RTSP_TRANSPORT] == "None": 
+        camera_info[CONF_RTSP_TRANSPORT] = None
 
     entity_registry = er.async_get(hass)
     entity_registry.async_remove(msg["entity_id"])
@@ -176,6 +178,7 @@ async def edit_camera(hass, connection, msg):
             await save_to_storage(hass, camera_list, key = STORAGE_FILE)
 
     connection.send_message(websocket_api.result_message(msg["id"], True))
+
 
 
 @websocket_api.websocket_command(
