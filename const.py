@@ -8,6 +8,7 @@ DOMAIN = "camera_dashboard_raceland"
 
 DATA_ADDERS = "adders"
 DOMAIN_GENERIC = "generic"
+CONF_INTEGRATION_DEFAULT = "generic"
 PLATFORM = [Platform.CAMERA]
 PACKAGE_NAME = "custom_components.camera_dashboard_raceland"
 STORAGE_FILE = "cameras_information"

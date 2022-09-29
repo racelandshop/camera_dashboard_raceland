@@ -47,7 +47,7 @@ from .const import (
     STORAGE_FILE
 )
 
-from .helpers import setup_platform, load_from_storage
+from .helpers import setup_platform, load_from_storage, create_entity
 from .const import DOMAIN
 
 CONF_CONTENT_TYPE = "content_type"
@@ -75,14 +75,13 @@ async def async_setup_platform(hass, config, async_add_devices, discovery_info=N
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the generic camera from a config entry."""
     #Load up camera entities from storage. 
+    await async_setup_platform(hass, {}, async_add_entities)
 
     registered_cameras = await load_from_storage(hass, STORAGE_FILE)
+    
     for cam_data in registered_cameras: 
-        if cam_data["integration"] == DOMAIN_GENERIC: 
-            async_add_entities([GenericCamera(hass, cam_data, cam_data["unique_id"])]) 
+        create_entity(hass, cam_data, identifier = cam_data["unique_id"])
 
-
-    await async_setup_platform(hass, {}, async_add_entities)
 
 
 

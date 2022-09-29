@@ -2,6 +2,9 @@
 import logging
 from slugify import slugify
 
+from .const import STORAGE_FILE
+
+
 from homeassistant.const import CONF_NAME 
 from homeassistant.util import uuid as uuid_util
 from homeassistant.helpers.storage import Store
@@ -25,13 +28,11 @@ def setup_platform(hass, domain, config, async_add_devices, platform_map):
         entity = cls(hass, device_data, identifier)
         async_add_devices([entity])
         return entity
-    
     hass.data[domain].adders = adder
 
     return True
 
-
-def create_entity(hass, camera_info, integration, identifier = None):
+def create_entity(hass, camera_info, identifier = None):
     adder = hass.data[DOMAIN].adders
     entity = adder(hass, camera_info, identifier = identifier)
     return entity

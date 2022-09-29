@@ -2,6 +2,7 @@
 Raceland dashboard gives you a powerfull integration that allows the user to add, edit and remove cameras.
 """
 from __future__ import annotations
+from tracemalloc import DomainFilter
 
 from typing import Any
 
@@ -15,6 +16,7 @@ from homeassistant.loader import async_get_integration
 
 import voluptuous as vol
 
+from .camera_database import CAMERADATABASE
 from .base import CameraBase
 from .const import DOMAIN, ConfigurationType, CameraDashboardDisabledReason, SetupStage
 from .tasks.manager import CameraDashboardTaskManager
@@ -35,6 +37,7 @@ async def async_initialize_integration(
 ) -> bool:
     """Initialize the integration"""
     hass.data[DOMAIN] = cameraBase = CameraBase()
+    cameraBase.camera_database = CAMERADATABASE
     if config is not None:
         if DOMAIN not in config:
             return True

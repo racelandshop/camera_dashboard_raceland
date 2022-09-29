@@ -108,6 +108,7 @@ class CameraBase:
     adders = {}
     devices = {}
     config = {}
+    camera_database = {}
 
     @property
     def integration_dir(self) -> pathlib.Path:

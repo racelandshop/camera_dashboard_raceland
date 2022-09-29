@@ -1,7 +1,6 @@
 """Register WS API endpoints for HACS."""
 from __future__ import annotations
-from email.policy import default
-
+from jinja2 import Template
 
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
@@ -11,16 +10,13 @@ import voluptuous as vol
 from homeassistant.helpers import entity_registry as er
 
 from homeassistant.components.websocket_api import (
-    websocket_command,
-    result_message,
-    event_message,
     async_register_command,
     ActiveConnection
 )
 
 from .base import CameraDashboardTask
 from ..base import CameraBase
-from ..const import DOMAIN_GENERIC, DOMAIN, SetupStage, STORAGE_FILE, CONF_INTEGRATION, CONF_RTSP_TRANSPORT
+from ..const import DOMAIN, SetupStage, STORAGE_FILE, CONF_INTEGRATION, CONF_RTSP_TRANSPORT, CONF_INTEGRATION_DEFAULT
 from ..helpers import create_entity, load_from_storage, save_to_storage
 
 
@@ -51,6 +47,11 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 
+CONF_CHANNEL = "channel"
+CONF_STILL_URL_DOOR = "still_url_door"
+CONF_STREAM_SOURCE_DOOR = "stream_source_door"
+CONF_URL_IP = "ip"
+
 async def async_setup_task(hacs: CameraBase, hass: HomeAssistant) -> Task:
     """Set up this task."""
     return Task(hacs=hacs, hass=hass)
@@ -63,23 +64,41 @@ class Task(CameraDashboardTask):
 
     async def async_execute(self) -> None:
         """Execute the task."""
+        async_register_command(self.hass, send_camera_database_to_frontend)
         async_register_command(self.hass, register_camera)
+        async_register_command(self.hass, register_model_camera)
         async_register_command(self.hass, edit_camera)
         async_register_command(self.hass, remove_camera_entity)
         async_register_command(self.hass, send_camera_information_to_frontend)
 
 
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "raceland-camera-dashboard/fetch_camera_db",
+    }
+        
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def send_camera_database_to_frontend(hass, connection, msg):
+    camera_database = hass.data[DOMAIN].camera_database
+    connection.send_message(websocket_api.result_message(msg["id"], camera_database))
+
+
+
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "raceland-camera-dashboard/register_camera",
-        vol.Required(CONF_INTEGRATION): cv.string,
+        vol.Optional(CONF_INTEGRATION, CONF_INTEGRATION_DEFAULT): cv.string,
         vol.Required(CONF_NAME): cv.string,
         vol.Optional(CONF_STILL_IMAGE_URL): cv.string,
         vol.Optional(CONF_STREAM_SOURCE): cv.string,
         vol.Optional(CONF_USERNAME): cv.string,
         vol.Optional(CONF_PASSWORD): cv.string,
         vol.Optional("advanced_options"): cv.boolean, #This options is just to ensure the backend can handle the information if there advanced options are picked
-        vol.Optional("record_video_of_camera"): cv.boolean,  
+        #vol.Optional("record_video_of_camera"): cv.boolean,  
         vol.Optional(CONF_AUTHENTICATION): vol.In(
             [HTTP_BASIC_AUTHENTICATION.capitalize(), HTTP_DIGEST_AUTHENTICATION.capitalize()]),
         vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
@@ -93,13 +112,12 @@ class Task(CameraDashboardTask):
 @websocket_api.require_admin
 @websocket_api.async_response
 async def register_camera(hass, connection, msg):
-    integration = msg[CONF_INTEGRATION]
     camera_info = {
-        CONF_INTEGRATION: msg[CONF_INTEGRATION],
+        CONF_INTEGRATION: msg.get(CONF_INTEGRATION, CONF_INTEGRATION_DEFAULT),
         CONF_NAME: msg[CONF_NAME],
         CONF_STILL_IMAGE_URL: msg.get(CONF_STILL_IMAGE_URL, None),
         CONF_STREAM_SOURCE: msg.get(CONF_STREAM_SOURCE, None),
-        CONF_AUTHENTICATION: msg.get(CONF_AUTHENTICATION, HTTP_BASIC_AUTHENTICATION).lower(), 
+        CONF_AUTHENTICATION: msg.get(CONF_AUTHENTICATION, HTTP_DIGEST_AUTHENTICATION).lower(),
         CONF_LIMIT_REFETCH_TO_URL_CHANGE: msg.get(CONF_LIMIT_REFETCH_TO_URL_CHANGE, False),
         CONF_CONTENT_TYPE: msg.get(CONF_CONTENT_TYPE, DEFAULT_CONTENT_TYPE), 
         CONF_RTSP_TRANSPORT: msg.get(CONF_RTSP_TRANSPORT, None),
@@ -108,12 +126,114 @@ async def register_camera(hass, connection, msg):
         CONF_USERNAME: msg.get(CONF_USERNAME, None), 
         CONF_PASSWORD: msg.get(CONF_PASSWORD, None), 
     }
-    
-    entity = create_entity(hass, camera_info, integration) 
+
+    entity = create_entity(hass, camera_info) 
     if entity: 
         camera_info["unique_id"] = entity._attr_unique_id
         camera_list = await load_from_storage(hass, STORAGE_FILE)
         camera_list.append(camera_info)
+        await save_to_storage(hass, camera_list, key = STORAGE_FILE)
+
+    connection.send_message(websocket_api.result_message(msg["id"], True))
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "raceland-camera-dashboard/register_model_camera",
+        vol.Required(CONF_NAME): cv.string,
+        vol.Optional(CONF_STILL_IMAGE_URL): cv.string,
+        vol.Optional(CONF_STREAM_SOURCE): cv.string,
+        vol.Optional(CONF_USERNAME): cv.string,
+        vol.Optional(CONF_PASSWORD): cv.string,
+        vol.Optional(CONF_URL_IP): cv.string,
+        vol.Optional(CONF_STILL_URL_DOOR): cv.string,
+        vol.Optional(CONF_STREAM_SOURCE_DOOR): cv.string, 
+        vol.Optional(CONF_CHANNEL): cv.string,
+    }
+        
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def register_model_camera(hass, connection, msg):        
+    new_camera_information = []
+
+    if msg.get(CONF_STILL_URL_DOOR, None): 
+        msg[CONF_STILL_URL_DOOR] = ":" + msg.get(CONF_STILL_URL_DOOR, None)
+
+    if msg.get(CONF_STREAM_SOURCE_DOOR, None): 
+        msg[CONF_STREAM_SOURCE_DOOR] = ":" + msg.get(CONF_STREAM_SOURCE_DOOR, None)
+        
+        
+    n_channels = int(msg.get(CONF_CHANNEL, 0))
+    if n_channels > 1: 
+        for i in range(n_channels):
+            data = msg
+            data["channel"] = str(i + 1)
+
+            if msg.get(CONF_STILL_IMAGE_URL): 
+                still_image_url = Template(msg.get(CONF_STILL_IMAGE_URL)).render(data)
+            else: 
+                still_image_url = None
+            
+            if msg.get(CONF_STREAM_SOURCE): 
+                stream_source = Template(msg.get(CONF_STREAM_SOURCE)).render(data)
+            else: 
+                stream_source = None
+
+            camera_info = {
+                CONF_INTEGRATION: CONF_INTEGRATION_DEFAULT,
+                CONF_NAME: msg[CONF_NAME] + " " + data["channel"],
+                CONF_STILL_IMAGE_URL: still_image_url,
+                CONF_STREAM_SOURCE: stream_source,
+                CONF_USERNAME: msg.get(CONF_USERNAME, None), 
+                CONF_PASSWORD: msg.get(CONF_PASSWORD, None), 
+                CONF_AUTHENTICATION: msg.get(CONF_AUTHENTICATION, HTTP_DIGEST_AUTHENTICATION).lower(), 
+                CONF_LIMIT_REFETCH_TO_URL_CHANGE: msg.get(CONF_LIMIT_REFETCH_TO_URL_CHANGE, False),
+                CONF_CONTENT_TYPE: msg.get(CONF_CONTENT_TYPE, DEFAULT_CONTENT_TYPE), 
+                CONF_RTSP_TRANSPORT: msg.get(CONF_RTSP_TRANSPORT),
+                CONF_FRAMERATE: msg.get(CONF_FRAMERATE, 2), 
+                CONF_VERIFY_SSL: msg.get(CONF_VERIFY_SSL, True),
+            }
+            entity = create_entity(hass, camera_info) 
+            camera_info["unique_id"] = entity._attr_unique_id
+            new_camera_information.append(camera_info)
+
+    else: 
+        data = msg
+        data["channel"] = 1
+
+        if msg.get(CONF_STILL_IMAGE_URL): 
+            still_image_url = Template(msg.get(CONF_STILL_IMAGE_URL)).render(data)
+        else: 
+            still_image_url = None
+        
+        if msg.get(CONF_STREAM_SOURCE): 
+            stream_source = Template(msg.get(CONF_STREAM_SOURCE)).render(data)
+        else: 
+            stream_source = None
+
+        camera_info = {
+            CONF_INTEGRATION: CONF_INTEGRATION_DEFAULT,
+            CONF_NAME: msg[CONF_NAME],
+            CONF_STILL_IMAGE_URL: still_image_url,
+            CONF_STREAM_SOURCE: stream_source,
+            CONF_USERNAME: msg.get(CONF_USERNAME, None), 
+            CONF_PASSWORD: msg.get(CONF_PASSWORD, None), 
+            CONF_AUTHENTICATION: msg.get(CONF_AUTHENTICATION, HTTP_DIGEST_AUTHENTICATION).lower(), 
+            CONF_LIMIT_REFETCH_TO_URL_CHANGE: msg.get(CONF_LIMIT_REFETCH_TO_URL_CHANGE, False),
+            CONF_CONTENT_TYPE: msg.get(CONF_CONTENT_TYPE, DEFAULT_CONTENT_TYPE), 
+            CONF_RTSP_TRANSPORT: msg.get(CONF_RTSP_TRANSPORT),
+            CONF_FRAMERATE: msg.get(CONF_FRAMERATE, 2), 
+            CONF_VERIFY_SSL: msg.get(CONF_VERIFY_SSL, True),
+        }
+        entity = create_entity(hass, camera_info) 
+        camera_info["unique_id"] = entity._attr_unique_id
+        new_camera_information.append(camera_info)
+
+    #At the end add every camera information in bulk
+    if entity: 
+        camera_list = await load_from_storage(hass, STORAGE_FILE)
+        camera_list.extend(new_camera_information)
         await save_to_storage(hass, camera_list, key = STORAGE_FILE)
 
     connection.send_message(websocket_api.result_message(msg["id"], True))
@@ -131,7 +251,7 @@ async def register_camera(hass, connection, msg):
         vol.Optional(CONF_USERNAME): cv.string,
         vol.Optional(CONF_PASSWORD): cv.string,
         vol.Optional("advanced_options"): cv.boolean, #This options is just to ensure the backend can handle the information if there advanced options are picked
-        vol.Optional("record_video_of_camera"): cv.boolean,  
+        # vol.Optional("record_video_of_camera"): cv.boolean,  
         vol.Optional(CONF_AUTHENTICATION): vol.In(
             [HTTP_BASIC_AUTHENTICATION.capitalize(), HTTP_DIGEST_AUTHENTICATION.capitalize()]),
         vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
@@ -168,7 +288,7 @@ async def edit_camera(hass, connection, msg):
 
     entity_registry = er.async_get(hass)
     entity_registry.async_remove(msg["entity_id"])
-    entity = create_entity(hass, camera_info, integration, identifier = camera_info["unique_id"])     
+    entity = create_entity(hass, camera_info, identifier = camera_info["unique_id"])     
     if entity: 
         camera_list = await load_from_storage(hass, STORAGE_FILE)
         for cam in camera_list.copy():
