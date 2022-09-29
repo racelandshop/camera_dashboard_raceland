@@ -2,8 +2,6 @@
 Raceland dashboard gives you a powerfull integration that allows the user to add, edit and remove cameras.
 """
 from __future__ import annotations
-from tracemalloc import DomainFilter
-
 from typing import Any
 
 from awesomeversion import AwesomeVersion
@@ -14,11 +12,15 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_call_later
 from homeassistant.loader import async_get_integration
 
+from homeassistant.helpers import entity_registry 
+
+
 import voluptuous as vol
 
 from .camera_database import CAMERADATABASE
 from .base import CameraBase
-from .const import DOMAIN, ConfigurationType, CameraDashboardDisabledReason, SetupStage
+from .const import DOMAIN, ConfigurationType, CameraDashboardDisabledReason, SetupStage, STORAGE_FILE
+from .helpers import load_from_storage
 from .tasks.manager import CameraDashboardTaskManager
 from .utils.configuration_schema import camera_dashboard_config
 from .utils.queue_manager import QueueManager
@@ -65,6 +67,13 @@ async def async_initialize_integration(
                 **config_entry.options,
             }
         )
+
+    #In case there are entities not in the .storage files but still on entity registry
+    er = entity_registry.async_get(hass)
+    registered_cameras = [(entity_id, entity.unique_id) for (entity_id, entity) in er.entities.items() if entity_id.startswith("camera.")]
+    storage_camera = [camera["unique_id"] for camera in await load_from_storage(hass, STORAGE_FILE)]
+    [er.async_remove(camera[0]) for camera in registered_cameras if camera[1] not in storage_camera]
+
 
     integration = await async_get_integration(hass, DOMAIN)
 
