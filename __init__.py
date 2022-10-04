@@ -17,10 +17,9 @@ from homeassistant.helpers import entity_registry
 
 import voluptuous as vol
 
-from .camera_database import CAMERADATABASE
 from .base import CameraBase
 from .const import DOMAIN, ConfigurationType, CameraDashboardDisabledReason, SetupStage, STORAGE_FILE
-from .helpers import load_from_storage
+from .helpers import load_from_storage, load_camera_database
 from .tasks.manager import CameraDashboardTaskManager
 from .utils.configuration_schema import camera_dashboard_config
 from .utils.queue_manager import QueueManager
@@ -39,7 +38,7 @@ async def async_initialize_integration(
 ) -> bool:
     """Initialize the integration"""
     hass.data[DOMAIN] = cameraBase = CameraBase()
-    cameraBase.camera_database = CAMERADATABASE
+    cameraBase.camera_database = await load_camera_database(hass)
     if config is not None:
         if DOMAIN not in config:
             return True

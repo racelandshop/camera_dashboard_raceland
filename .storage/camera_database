@@ -1,0 +1,25 @@
+{
+    "version": 1,
+    "minor_version": 1,
+    "key": "camera_database",
+    "data": {"Manufacturer": [
+      {"name": "Hikvision", "models": [
+        {"version": 1111},  
+        {"version": "16CH-TVI"},
+        {"version": "HWI-D620H-Z", "options": {
+          "static": "http://{{ ip }}{{ still_url_door }}/ISAPI/Streaming/channels/{{ channel }}01/picture",
+          "stream": "rtsp://{{ ip }}{{ stream_source_door }}/Streaming/Channels/{{ channel }}01"
+          },
+          "fields": 
+          {"ip":  {"name": "ip", "selector": { "text": {} }}, 
+            "still_url_door":  {"name": "still_url_door", "selector": { "text": {} }}, "stream_source_door":  {"name": "stream_source_door", "selector": { "text": {} }},
+            "channel": {"name": "stream_source_door", "selector": { "text": {} }},
+            "username" : {"name": "username", "selector": { "text": {} }},"password" : {"name": "password", "selector": { "text": { "type": "password" } }}}
+        }
+      ]},
+      {"name": "Logitech", "models": [
+        {"version": 5050},
+        {"version": 525}
+      ]}
+    ]}  
+  }

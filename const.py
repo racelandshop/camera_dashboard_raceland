@@ -12,6 +12,7 @@ CONF_INTEGRATION_DEFAULT = "generic"
 PLATFORM = [Platform.CAMERA]
 PACKAGE_NAME = "custom_components.camera_dashboard_raceland"
 STORAGE_FILE = "cameras_information"
+CAMERA_DATABASE_FILE_NAME = "camera_database"
 
 CONF_INTEGRATION = "integration"
 CONF_RTSP_TRANSPORT = "rtsp_transport"

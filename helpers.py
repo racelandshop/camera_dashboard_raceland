@@ -1,8 +1,9 @@
 
 import logging
 from slugify import slugify
+import json 
 
-from .const import STORAGE_FILE
+from .const import CAMERA_DATABASE_FILE_NAME
 
 
 from homeassistant.const import CONF_NAME 
@@ -10,19 +11,22 @@ from homeassistant.util import uuid as uuid_util
 from homeassistant.helpers.storage import Store
 
 
-from .const import DATA_ADDERS, DOMAIN, DOMAIN_GENERIC
+from .const import DOMAIN
 
-DATA_DEVICES = "devices"
-DATA_CONFIG = "config"
-CONFIG_DEVICES = "devices"
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def load_camera_database(hass): 
+    store = Store(hass, version = 1, key = CAMERA_DATABASE_FILE_NAME)
+    return await store.async_load()
 
 def setup_platform(hass, domain, config, async_add_devices, platform_map):
    
     def adder(hass, device_data, identifier):
         device_name = slugify(device_data["name"])
         if (identifier == None): 
+            device_name = slugify(device_name)
             identifier = f"camera-{uuid_util.random_uuid_hex()}-{device_name}"
         cls = platform_map[device_data["integration"]]
         entity = cls(hass, device_data, identifier)
