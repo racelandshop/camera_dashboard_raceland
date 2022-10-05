@@ -130,7 +130,7 @@ class GenericCamera(Camera):
         self.content_type = device_info[CONF_CONTENT_TYPE]
         self.verify_ssl = device_info[CONF_VERIFY_SSL]
         if device_info.get(CONF_RTSP_TRANSPORT):
-            self.stream_options[FFMPEG_OPTION_MAP[CONF_RTSP_TRANSPORT]] = device_info[
+            self.stream_options[CONF_RTSP_TRANSPORT] = device_info[
                 CONF_RTSP_TRANSPORT
             ]
 
