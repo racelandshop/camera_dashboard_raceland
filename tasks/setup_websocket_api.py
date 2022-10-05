@@ -1,5 +1,8 @@
 """Register WS API endpoints for HACS."""
 from __future__ import annotations
+from email.policy import default
+import logging
+from pickle import TRUE
 from jinja2 import Template
 
 from homeassistant.components import websocket_api
@@ -42,8 +45,6 @@ from homeassistant.components.generic.const import (
 
 from homeassistant.components.camera import DEFAULT_CONTENT_TYPE
 
-
-import logging
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -51,6 +52,7 @@ CONF_CHANNEL = "channel"
 CONF_STILL_URL_DOOR = "still_url_door"
 CONF_STREAM_SOURCE_DOOR = "stream_source_door"
 CONF_URL_IP = "ip"
+CONF_ADD_MULTI_CHANNELS = "add_multi_channels"
 
 async def async_setup_task(hacs: CameraBase, hass: HomeAssistant) -> Task:
     """Set up this task."""
@@ -98,11 +100,10 @@ async def send_camera_database_to_frontend(hass, connection, msg):
         vol.Optional(CONF_USERNAME): cv.string,
         vol.Optional(CONF_PASSWORD): cv.string,
         vol.Optional("advanced_options"): cv.boolean, #This options is just to ensure the backend can handle the information if there advanced options are picked
-        #vol.Optional("record_video_of_camera"): cv.boolean,  
         vol.Optional(CONF_AUTHENTICATION): vol.In(
             [HTTP_BASIC_AUTHENTICATION.capitalize(), HTTP_DIGEST_AUTHENTICATION.capitalize()]),
         vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
-        vol.Optional(CONF_RTSP_TRANSPORT): cv.string,
+        vol.Optional(CONF_RTSP_TRANSPORT, default = "tcp"): cv.string,
         vol.Optional(CONF_FRAMERATE, default=2): vol.Any(
             cv.small_float, cv.positive_int
         ),
@@ -120,11 +121,12 @@ async def register_camera(hass, connection, msg):
         CONF_AUTHENTICATION: msg.get(CONF_AUTHENTICATION, HTTP_DIGEST_AUTHENTICATION).lower(),
         CONF_LIMIT_REFETCH_TO_URL_CHANGE: msg.get(CONF_LIMIT_REFETCH_TO_URL_CHANGE, False),
         CONF_CONTENT_TYPE: msg.get(CONF_CONTENT_TYPE, DEFAULT_CONTENT_TYPE), 
-        CONF_RTSP_TRANSPORT: msg.get(CONF_RTSP_TRANSPORT, None),
+        CONF_RTSP_TRANSPORT: msg.get(CONF_RTSP_TRANSPORT, ),
         CONF_FRAMERATE: msg.get(CONF_FRAMERATE, 2), 
         CONF_VERIFY_SSL: msg.get(CONF_VERIFY_SSL, True),
         CONF_USERNAME: msg.get(CONF_USERNAME, None), 
         CONF_PASSWORD: msg.get(CONF_PASSWORD, None), 
+        
     }
 
     entity = create_entity(hass, camera_info) 
@@ -149,6 +151,15 @@ async def register_camera(hass, connection, msg):
         vol.Optional(CONF_STILL_URL_DOOR): cv.string,
         vol.Optional(CONF_STREAM_SOURCE_DOOR): cv.string, 
         vol.Optional(CONF_CHANNEL): cv.string,
+        vol.Optional(CONF_ADD_MULTI_CHANNELS, default = False): cv.string,
+        vol.Optional("advanced_options"): cv.boolean, #This options is just to ensure the backend can handle the information if there advanced options are picked
+        vol.Optional(CONF_AUTHENTICATION): vol.In(
+            [HTTP_BASIC_AUTHENTICATION.capitalize(), HTTP_DIGEST_AUTHENTICATION.capitalize()]),
+        vol.Optional(CONF_VERIFY_SSL, default = True): cv.boolean,
+        vol.Optional(CONF_RTSP_TRANSPORT, default = None): cv.string,
+        vol.Optional(CONF_FRAMERATE, default=2): vol.Any(
+            cv.small_float, cv.positive_int
+        ),
     }
         
 )
@@ -163,12 +174,13 @@ async def register_model_camera(hass, connection, msg):
     if msg.get(CONF_STREAM_SOURCE_DOOR, None): 
         msg[CONF_STREAM_SOURCE_DOOR] = ":" + msg.get(CONF_STREAM_SOURCE_DOOR, None)
         
-        
+    
+    _LOGGER.warn( msg[CONF_ADD_MULTI_CHANNELS])
     n_channels = int(msg.get(CONF_CHANNEL, 0))
-    if n_channels > 1: 
+    if n_channels > 1 and msg[CONF_ADD_MULTI_CHANNELS] == TRUE: 
         for i in range(n_channels):
             data = msg
-            data["channel"] = str(i + 1)
+            data[CONF_CHANNEL] = str(i + 1)
 
             if msg.get(CONF_STILL_IMAGE_URL): 
                 still_image_url = Template(msg.get(CONF_STILL_IMAGE_URL)).render(data)
@@ -200,7 +212,7 @@ async def register_model_camera(hass, connection, msg):
 
     else: 
         data = msg
-        data["channel"] = 1
+        data[CONF_CHANNEL] = 1
 
         if msg.get(CONF_STILL_IMAGE_URL): 
             still_image_url = Template(msg.get(CONF_STILL_IMAGE_URL)).render(data)
@@ -231,10 +243,9 @@ async def register_model_camera(hass, connection, msg):
         new_camera_information.append(camera_info)
 
     #At the end add every camera information in bulk
-    if entity: 
-        camera_list = await load_from_storage(hass, STORAGE_FILE)
-        camera_list.extend(new_camera_information)
-        await save_to_storage(hass, camera_list, key = STORAGE_FILE)
+    camera_list = await load_from_storage(hass, STORAGE_FILE)
+    camera_list.extend(new_camera_information)
+    await save_to_storage(hass, camera_list, key = STORAGE_FILE)
 
     connection.send_message(websocket_api.result_message(msg["id"], True))
 
