@@ -28,7 +28,7 @@ class Task(CameraDashboardTask):
         """Execute the task."""
 
         # Register frontend
-        if self.hacs.configuration.frontend_repo_url:
+        if self.hacs.configuration.dev_mode == True:
             self.task_logger(
                 self.hacs.log.warning,
                 "Frontend development mode enabled. Do not run in production!",

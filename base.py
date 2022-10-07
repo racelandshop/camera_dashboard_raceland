@@ -39,6 +39,7 @@ class HacsConfiguration:
     frontend_mode: str = "Grid"
     frontend_repo_url: str = "http://localhost:5000"
     frontend_repo: str = ""
+    dev_mode: str = ""
     onboarding_done: bool = False
     sidepanel_icon: str = "mdi:camera"
     sidepanel_title: str = "Camera"

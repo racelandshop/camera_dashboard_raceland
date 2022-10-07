@@ -57,7 +57,6 @@ async def async_initialize_integration(
             hass.async_create_task(hass.config_entries.async_remove(config_entry.entry_id))
             return False
 
-
         cameraBase.configuration.update_from_dict(
             {
                 "config_entry": config_entry,
@@ -67,10 +66,11 @@ async def async_initialize_integration(
             }
         )
 
-    #In case there are entities not in the .storage files but still on entity registry
+    #In case there are entities not in the .storage files but still on entity registry (can happen if HA is restarted right after a camera is removeds)
     er = entity_registry.async_get(hass)
     registered_cameras = [(entity_id, entity.unique_id) for (entity_id, entity) in er.entities.items() if entity_id.startswith("camera.")]
     storage_camera = [camera["unique_id"] for camera in await load_from_storage(hass, STORAGE_FILE)]
+    
     [er.async_remove(camera[0]) for camera in registered_cameras if camera[1] not in storage_camera]
 
 
