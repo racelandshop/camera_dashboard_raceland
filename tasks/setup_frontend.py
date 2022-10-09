@@ -11,8 +11,7 @@ from ..hacs_frontend import locate_dir
 from ..hacs_frontend.version import VERSION as FE_VERSION
 from .base import CameraDashboardTask
 
-URL_BASE = "/camera_dashboard_files" #TODO: Figure out this in production
-
+URL_BASE = "/hacsfiles"
 
 async def async_setup_task(hacs: CameraBase, hass: HomeAssistant) -> Task:
     """Set up this task."""
@@ -62,7 +61,7 @@ class Task(CameraDashboardTask):
                         "name": "cameras-dashboard",
                         "embed_iframe": True,
                         "trust_external": False,
-                        "js_url": f"/hacsfiles/frontend/entrypoint.js?hacstag={FE_VERSION}", # TODO Probably I have to eddit this line when in production
+                        "js_url": f"/hacsfiles/frontend/entrypoint.js?hacstag={FE_VERSION}",
                     }
                 },
                 require_admin=True,
