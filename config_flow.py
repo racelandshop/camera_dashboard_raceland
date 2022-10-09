@@ -40,24 +40,30 @@ class cameraDashboardConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Get the options flow for this handler."""
         return OptionsFlowHandler(config_entry)
 
-class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Handles options flow for the component."""
+# class OptionsFlowHandler(config_entries.OptionsFlow):
+#     """Handles options flow for the component."""
 
-    def __init__(self, config_entry):
-        self.config_entry = config_entry
+#     def __init__(self, config_entry):
+#         self.config_entry = config_entry
 
-    async def async_step_init(
-        self, data
-    ):
-        """Manage the options for the custom component."""
-        _LOGGER.warn("File ")
-        if data is not None:
-            return self.async_create_entry(title="Camera Dashboard", data=data)
+#     @callback
+#     def _save_config(self, data):
+#         """Save the updated options."""
+#         return self.async_create_entry(title="", data=data)
+
+
+#     async def async_step_init(
+#         self, user_input = None
+#     ):
+#         """Manage the options for the custom component."""
+#         _LOGGER.warn("File %s",user_input)
+#         if user_input is not None:
+#             return self._save_config(user_input)
             
-        options_schema = {
-            vol.Required(CONF_DEV_MODE, default = self.hass.data[DOMAIN].configuration.dev_mode): bool,
-        }
+#         options_schema = {
+#             vol.Required(CONF_DEV_MODE, default = self.hass.data[DOMAIN].configuration.dev_mode): bool,
+#         }
 
-        return self.async_show_form(
-            step_id="init", data_schema=options_schema
-        )
+#         return self.async_show_form(
+#             step_id="init", data_schema=options_schema
+#         )
