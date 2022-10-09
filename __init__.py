@@ -2,7 +2,10 @@
 Raceland dashboard gives you a powerfull integration that allows the user to add, edit and remove cameras.
 """
 from __future__ import annotations
+from telnetlib import DO
 from typing import Any
+
+import time
 
 from awesomeversion import AwesomeVersion
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
@@ -14,7 +17,7 @@ from homeassistant.loader import async_get_integration
 
 from homeassistant.helpers import entity_registry 
 
-
+import asyncio
 import voluptuous as vol
 
 from .base import CameraBase
@@ -34,23 +37,12 @@ async def async_initialize_integration(
     hass: HomeAssistant,
     *,
     config_entry: ConfigEntry | None = None,
-    config: dict[str, Any] | None = None,
 ) -> bool:
     """Initialize the integration"""
-    hass.data[DOMAIN] = cameraBase = CameraBase()
-    cameraBase.camera_database = await load_camera_database(hass)
-    if config is not None:
-        if DOMAIN not in config:
-            return True
-        if cameraBase.configuration.config_type == ConfigurationType.CONFIG_ENTRY:
-            return True
-        cameraBase.configuration.update_from_dict(
-            {
-                "config_type": ConfigurationType.YAML,
-                **config[DOMAIN],
-                "config": config[DOMAIN],
-            }
-        )
+    if hass.data.get(DOMAIN) == None: 
+        hass.data[DOMAIN] = cameraBase = CameraBase()
+    else: 
+        cameraBase = hass.data[DOMAIN]
 
     if config_entry is not None:
         if config_entry.source == SOURCE_IMPORT:
@@ -66,7 +58,7 @@ async def async_initialize_integration(
             }
         )
 
-    #In case there are entities not in the .storage files but still on entity registry (can happen if HA is restarted right after a camera is removeds)
+    #In case there are entities not in the .storage files but still on entity registry (can happen if HA is restarted right after a camera is removed)
     er = entity_registry.async_get(hass)
     registered_cameras = [(entity_id, entity.unique_id) for (entity_id, entity) in er.entities.items() if entity_id.startswith("camera.")]
     storage_camera = [camera["unique_id"] for camera in await load_from_storage(hass, STORAGE_FILE)]
@@ -119,10 +111,17 @@ async def async_initialize_integration(
     # Mischief managed!
     return True
 
+async def async_setup_database(hass, config): 
+    """Setup the Camera Database for the integration"""
+    hass.data[DOMAIN] = cameraBase = CameraBase()
+    cameraBase.camera_database = config[DOMAIN]["data"]
+    return True
+
 
 async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
-    """Set up this integration using yaml."""
-    return await async_initialize_integration(hass=hass, config=config)
+    """Set up this integration using yaml. Currently being used to read the Database of Camera Models default"""
+    #return await async_initialize_integration(hass=hass, config=config)
+    return await async_setup_database(hass, config)
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
