@@ -173,9 +173,8 @@ async def register_model_camera(hass, connection, msg):
         msg[CONF_STREAM_SOURCE_DOOR] = ":" + msg.get(CONF_STREAM_SOURCE_DOOR, None)
         
     
-    _LOGGER.warn( msg[CONF_ADD_MULTI_CHANNELS])
-    n_channels = int(msg.get(CONF_CHANNEL, 0))
-    if n_channels > 1 and msg[CONF_ADD_MULTI_CHANNELS] == True: 
+    n_channels = int(msg.get(CONF_CHANNEL, 1))
+    if n_channels > 1 and bool(msg[CONF_ADD_MULTI_CHANNELS]) == True: 
         for i in range(n_channels):
             data = msg
             data[CONF_CHANNEL] = str(i + 1)
