@@ -20,3 +20,4 @@ tasks/__pycache__/setup_websocket_api.cpython-39.pyc
 utils/__pycache__/configuration_schema.cpython-39.pyc
 utils/__pycache__/logger.cpython-39.pyc
 utils/__pycache__/queue_manager.cpython-39.pyc
+hacs_frontend/*
