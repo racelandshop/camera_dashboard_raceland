@@ -34,11 +34,11 @@ class cameraDashboardConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry):
-        """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
+    # @staticmethod
+    # @callback
+    # def async_get_options_flow(config_entry):
+    #     """Get the options flow for this handler."""
+    #     return OptionsFlowHandler(config_entry)
 
 # class OptionsFlowHandler(config_entries.OptionsFlow):
 #     """Handles options flow for the component."""
