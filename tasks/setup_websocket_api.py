@@ -1,8 +1,6 @@
 """Register WS API endpoints for HACS."""
 from __future__ import annotations
-from email.policy import default
 import logging
-from pickle import TRUE
 from jinja2 import Template
 
 from homeassistant.components import websocket_api
@@ -177,7 +175,7 @@ async def register_model_camera(hass, connection, msg):
     
     _LOGGER.warn( msg[CONF_ADD_MULTI_CHANNELS])
     n_channels = int(msg.get(CONF_CHANNEL, 0))
-    if n_channels > 1 and msg[CONF_ADD_MULTI_CHANNELS] == TRUE: 
+    if n_channels > 1 and msg[CONF_ADD_MULTI_CHANNELS] == True: 
         for i in range(n_channels):
             data = msg
             data[CONF_CHANNEL] = str(i + 1)
