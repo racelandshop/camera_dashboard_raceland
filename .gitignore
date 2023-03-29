@@ -1,7 +1,4 @@
 __pycache__/
-hacs_frontend/__pycache__/
-tasks/__pycache__/
-utils/__pycache__/
 __pycache__/__init__.cpython-39.pyc
 __pycache__/base.cpython-39.pyc
 __pycache__/camera.cpython-39.pyc
@@ -9,15 +6,3 @@ __pycache__/config_flow.cpython-39.pyc
 __pycache__/const.cpython-39.pyc
 __pycache__/exceptions.cpython-39.pyc
 __pycache__/helpers.cpython-39.pyc
-hacs_frontend/__pycache__/__init__.cpython-39.pyc
-hacs_frontend/__pycache__/version.cpython-39.pyc
-tasks/__pycache__/__init__.cpython-39.pyc
-tasks/__pycache__/base.cpython-39.pyc
-tasks/__pycache__/manager.cpython-39.pyc
-tasks/__pycache__/setup_camera_platform.cpython-39.pyc
-tasks/__pycache__/setup_frontend.cpython-39.pyc
-tasks/__pycache__/setup_websocket_api.cpython-39.pyc
-utils/__pycache__/configuration_schema.cpython-39.pyc
-utils/__pycache__/logger.cpython-39.pyc
-utils/__pycache__/queue_manager.cpython-39.pyc
-hacs_frontend/*
