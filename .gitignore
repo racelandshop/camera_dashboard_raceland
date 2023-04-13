@@ -6,3 +6,10 @@ __pycache__/config_flow.cpython-39.pyc
 __pycache__/const.cpython-39.pyc
 __pycache__/exceptions.cpython-39.pyc
 __pycache__/helpers.cpython-39.pyc
+
+
+custom_components/camera_dashboard_raceland/frontend/node_modules
+custom_components/camera_dashboard_raceland/frontend/package-lock.json
+custom_components/camera_dashboard_raceland/frontend/build
+custom_components/camera_dashboard_raceland/frontend/src/localize/generated.ts
+custom_components/camera_dashboard_raceland/frontend/yarn-error.log
