@@ -1,3 +1,0 @@
-camera_dashboard_raceland: 
-  data: 
-    !include camera_dashboard_raceland_database.yaml
