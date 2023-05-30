@@ -21,7 +21,6 @@ export class NewCameraCard extends LitElement {
   protected render(): TemplateResult | void {
     return html`
       <ha-card
-        @click=${this._openAddCameraDialog}
         class="add-new-camera"
         @focus=${this.handleRippleFocus}
         @blur=${this.handleRippleBlur}
@@ -36,10 +35,6 @@ export class NewCameraCard extends LitElement {
         ${this._shouldRenderRipple ? html`<mwc-ripple></mwc-ripple>` : ""}
       </ha-card>
     `;
-  }
-
-  private _openAddCameraDialog(_ev) {
-    fireEvent(this, "add-new-camera");
   }
 
   private _rippleHandlers: RippleHandlers = new RippleHandlers(() => {

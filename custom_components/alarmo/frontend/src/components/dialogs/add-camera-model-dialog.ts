@@ -1,4 +1,3 @@
-//import '@material/mwc-button/mwc-button';
 import { mdiPlus, mdiChevronLeft } from '@mdi/js';
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators';
@@ -7,14 +6,13 @@ import memoizeOne from 'memoize-one';
 import Fuse from 'fuse.js';
 import { fireEvent, HomeAssistant } from 'custom-card-helpers';
 import { showCreateCameraDialog } from '../../helpers/show-create-camera-dialog';
-import { CameraModelsDialogParams } from '../../helpers/show-camera-models-dialog';
-import { showModelOptionsDialog } from '../../helpers/show-camera-models-dialog';
-import { cameraBrand, cameraModel } from '../../types';
+import { CameraModelsDialogParams, showModelOptionsDialog } from '../../helpers/show-camera-models-dialog';
+import { cancelIcon } from '../../icon_path';
 import { customSchema, customCameraExtraOptionSchema } from '../../schemas';
 import { localize } from '../../localize/localize';
+import { CameraBrand, CameraModel } from '../../types';
 import '../camera-model-icon-button';
 import '../search-input-round';
-import { cancelIcon } from '../../icon_path';
 
 export const haStyleDialog = css`
   /* mwc-dialog (ha-dialog) styles */
@@ -61,7 +59,7 @@ export class HuiCreateDialogCameraBrand extends LitElement {
 
   @state() private cameraDatabase: any;
 
-  @property({ attribute: false }) protected modelDatabase?: Array<cameraModel>;
+  @property({ attribute: false }) protected modelList?: CameraModel[];
 
   @state() private _currTabIndex = 0;
 
@@ -69,11 +67,11 @@ export class HuiCreateDialogCameraBrand extends LitElement {
 
   protected showDialog(params: CameraModelsDialogParams) {
     this.cameraDatabase = params.cameraDatabase;
-    this.modelDatabase = params.modelsInfo;
+    this.modelList = params.modelsInfo;
   }
 
   public closeDialog(): boolean {
-    this.modelDatabase = undefined;
+    this.modelList = undefined;
     this._currTabIndex = 0;
     return true;
   }
@@ -83,7 +81,7 @@ export class HuiCreateDialogCameraBrand extends LitElement {
       return modelsDatabase;
     }
     let filteredModels = modelsDatabase;
-    const options: Fuse.IFuseOptions<cameraBrand> = {
+    const options: Fuse.IFuseOptions<CameraBrand> = {
       keys: ['version'],
       isCaseSensitive: false,
       minMatchCharLength: 1,
@@ -95,10 +93,10 @@ export class HuiCreateDialogCameraBrand extends LitElement {
   });
 
   protected render(): TemplateResult {
-    if (!this.modelDatabase) {
+    if (!this.modelList) {
       return html``;
     }
-    const modelDatabase = this._filterModels(this.modelDatabase, this._filter);
+    const modelDatabase = this._filterModels(this.modelList, this._filter);
     const modifiedSchema: any = [];
     const advancedOptions: any[] = [];
 
@@ -169,9 +167,6 @@ export class HuiCreateDialogCameraBrand extends LitElement {
   }
 
   private _addCamera(ev, cameraModelInfo, modifiedSchema, advancedOptions) {
-    //Dynamically add the information for the formulary
-
-    console.log('cameraModelInfo', cameraModelInfo);
     cameraModelInfo.fields.forEach(element => {
       modifiedSchema.push(element);
     });
@@ -221,7 +216,7 @@ export class HuiCreateDialogCameraBrand extends LitElement {
 
   private _addCustomCamera(ev) {
     const formularyData = {
-      cameraModelInfo: {} as cameraModel,
+      cameraModelInfo: {} as CameraModel,
       schema: {
         header: { title: localize('common.add_camera') },
         body: customSchema,

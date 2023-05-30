@@ -1,8 +1,8 @@
 export interface CameraModelsDialogParams {
-  modelsInfo: Array<cameraModel>;
+  modelsInfo: Array<CameraModel>;
 }
 
-export interface cameraInfo {
+export interface CameraInfo {
   name: string;
   entityID: string;
   state: string;
@@ -12,12 +12,12 @@ export interface cameraCard {
   name?: string;
 }
 
-export interface cameraBrand {
+export interface CameraBrand {
   name?: string;
-  models: Array<cameraModel>;
+  models: CameraModel[];
 }
 
-export interface cameraModel {
+export interface CameraModel {
   version: string;
   options: Map<string, cameraOption>;
   supportChannels: boolean;
@@ -39,7 +39,7 @@ export interface schemaForm {
   header: { title: string };
   body: any; //HaFormSchema[];
   extra_options?: any;
-  cameraModelInfo?: cameraModel;
+  cameraModelInfo?: CameraModel;
   footer: {
     back?: string;
     accept: string;
@@ -64,4 +64,8 @@ export interface CameraConfiguration {
   rtsp_transport?: string;
   framerate?: string;
   entityID?: string;
+}
+
+export interface CameraDatabase {
+  manufacturer: CameraBrand[];
 }

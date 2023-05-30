@@ -1,16 +1,16 @@
 import { mdiCamera } from '@mdi/js';
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators';
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant, fireEvent } from 'custom-card-helpers';
 import './camera-button-menu';
 import { HacsStyles } from '../styles/hacs-common-style';
-import { cameraInfo } from '../types';
+import { CameraInfo } from '../types';
 
 @customElement('raceland-camera-card')
 export class racelandCameraCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
-  @property({ attribute: false }) public cameraInfo!: cameraInfo;
+  @property({ attribute: false }) public cameraInfo!: CameraInfo;
 
   @property({ type: Boolean }) public record!: boolean;
 
@@ -20,7 +20,6 @@ export class racelandCameraCard extends LitElement {
     return html`
       <ha-card narrow=${this.narrow}>
         <div class="top-row">
-          <!-- <button-recorder> @click=${this.handleRecord} </button-recorder> -->
           <camera-button-menu .hass=${this.hass} .cameraInfo=${this.cameraInfo}></camera-button-menu>
         </div>
         <ha-svg-icon class="main-camera-icon" path=${mdiCamera} @click=${this.more_info}></ha-svg-icon>
@@ -31,14 +30,15 @@ export class racelandCameraCard extends LitElement {
 
   private more_info(ev) {
     const entityId = this.cameraInfo.entityID;
-    console.log('Not implemented');
-    //fireEvent(this, 'more-info-camera', { entityId: entityId });
+    const element = ev.target;
+    fireEvent(element, 'show-dialog', {
+      dialogTag: 'ha-more-info-dialog-camera',
+      dialogImport: () => import('./dialogs/ha-more-info-dialog'),
+      dialogParams: {
+        entityId: entityId,
+      },
+    });
   }
-
-  //private handleRecord(ev) {
-  //  //For not only changes the record attribute (changes colors in the frontend)
-  //  this.record = !this.record;
-  //}
 
   static get styles(): CSSResultGroup {
     return [

@@ -4,8 +4,9 @@ import { customElement, property, state } from 'lit/decorators';
 import { classMap } from 'lit/directives/class-map';
 import { HomeAssistant, fireEvent } from 'custom-card-helpers';
 import { getCameraEntities, removeTrailingSpacesInput } from '../../common';
+import { cancelIcon } from '../../icon_path';
 import { sendCameraInformation, sendCameraBrandInformation } from '../../data/websocket';
-import { backEventOptions, schemaForm, CameraConfiguration, cameraCard, cameraModel } from '../../types';
+import { backEventOptions, schemaForm, CameraConfiguration, cameraCard, CameraModel } from '../../types';
 import { CameraFormsDialogParams } from '../../helpers/show-camera-form-dialog';
 import { localize } from '../../localize/localize';
 
@@ -52,11 +53,11 @@ export const haStyleDialog = css`
 export class HuiCreateDialogCameraFormulary extends LitElement implements HTMLElement {
   @property({ attribute: false }) protected hass!: HomeAssistant;
 
-  @property({ attribute: false }) protected dialogOpen?: boolean;
+  @property({ attribute: false }) protected open?: boolean;
 
   @property({ attribute: false }) protected data!: CameraConfiguration;
 
-  @property({ attribute: false }) protected cameraModelInfo?: cameraModel;
+  @property({ attribute: false }) protected cameraModelInfo?: CameraModel;
 
   @property({ attribute: false }) backEvent!: backEventOptions;
 
@@ -76,18 +77,18 @@ export class HuiCreateDialogCameraFormulary extends LitElement implements HTMLEl
     this.data = params.data;
     this.formType = params.formType;
     this.cameraModelInfo = params.cameraModelInfo;
-    this.dialogOpen = true;
+    this.open = true;
     this.registeredCameras = getCameraEntities(this.hass.states).map((camera: cameraCard) => camera.name);
   }
 
   public closeDialog(): boolean {
     this._currTabIndex = 0;
-    this.dialogOpen = undefined;
+    this.open = undefined;
     return true;
   }
 
   protected render(): TemplateResult {
-    if (!this.dialogOpen) {
+    if (!this.open) {
       return html``;
     }
 
@@ -113,7 +114,7 @@ export class HuiCreateDialogCameraFormulary extends LitElement implements HTMLEl
                 dialogAction="cancel"
                 .label=${this.hass!.localize('ui.dialogs.more_info_control.dismiss')}
                 id="cancel"
-                .path=${'M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z'}
+                .path=${cancelIcon}
               ></ha-icon-button>
             </ha-header-bar>
           </div>
@@ -166,13 +167,6 @@ export class HuiCreateDialogCameraFormulary extends LitElement implements HTMLEl
         </div>
       </ha-dialog>
     `;
-  }
-
-  private _cancel(ev?: Event) {
-    //if (ev) {
-    //  ev.stopPropagation();
-    //}
-    this.closeDialog();
   }
 
   private _computeLabelCallback = schema => {
@@ -232,33 +226,23 @@ export class HuiCreateDialogCameraFormulary extends LitElement implements HTMLEl
       if (valid === true) {
         const result = await sendCameraInformation(this.hass, this.data);
         if (result === true) {
-          //this.closeDialog();
-          fireEvent(this, 'update-camera-dashboard');
+          //TODO: ADD a error handling
+          this.closeDialog();
         }
       }
     } else if (this.formType === 'brand_camera') {
       const valid = this.validInput();
       if (valid === true) {
-        console.log('Event dispaching with window: ', window);
-        console.log('Event dispaching with node: ', this);
-        console.log('Event dispaching with document: ', document);
-
-        const haElement = document.querySelectorAll('home-assistant')[0];
-        console.log('this is the tested element', haElement);
-        const updateCamerasEvent = new Event('update-camera-dashboard');
-        haElement.dispatchEvent(updateCamerasEvent);
-
-        //await sendCameraBrandInformation(this.hass, this.data);
-
-        //this.closeDialog();
-        //fireEvent(this, 'update-camera-dashboard');
+        await sendCameraBrandInformation(this.hass, this.data);
+        ///TODO: ADD a error handling
+        //if (result === true) -> return result in await sendCameraBrandInformation(...)
+        this.closeDialog();
       }
     }
   }
 
   private _goBack(ev) {
     const element = ev.target as HTMLElement;
-    console.log('This is the event data', this.backEvent.eventData);
     this.backEvent.call(element, this.backEvent.eventData);
   }
 

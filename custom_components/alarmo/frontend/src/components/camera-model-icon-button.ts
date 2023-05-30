@@ -1,6 +1,6 @@
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators';
-import { cameraBrand } from '../types';
+import { CameraBrand } from '../types';
 
 @customElement('camera-model-icon-button')
 export class CameraModelIconButton extends LitElement {
@@ -8,7 +8,7 @@ export class CameraModelIconButton extends LitElement {
 
   @property({ type: String }) label = '';
 
-  @property({ attribute: false }) cameraModelInfo?: cameraBrand;
+  @property({ attribute: false }) cameraModelInfo?: CameraBrand;
 
   @property({ type: Boolean }) hideTitle = false;
 

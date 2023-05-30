@@ -3,110 +3,50 @@ import { LitElement, html, CSSResultGroup, css } from 'lit';
 import { property, customElement, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map';
 import { HomeAssistant, fireEvent } from 'custom-card-helpers';
+import { UnsubscribeFunc } from 'home-assistant-js-websocket';
 import memoizeOne from 'memoize-one';
 import Fuse from 'fuse.js';
-import './components/raceland-camera-card';
-import './components/new-camera-card';
 import { getCameraEntities } from './common';
-import { fetchCameraDatabase, fetchCameraList } from './data/websocket'; //fetchCameraList is not necessary. getCameraEntities
-import { showCreateCameraDialog } from './helpers/show-create-camera-dialog';
-import { showDeleteCameraDialog } from './helpers/show-delete-camera-dialog';
-import { showEditCameraDialog } from './helpers/show-edit-camera-dialog';
-import { showCameraDialog } from './helpers/show-camera-form-dialog';
-import { showTestDialog } from './helpers/show-create-test-dialog';
-import { CameraDashboardElement } from './cameraDashboardElement';
 import { localize } from './localize/localize';
 import { loadHaForm } from './load-ha-elements';
-import { cameraInfo, cameraCard, cameraModel, backEventOptions, schemaForm, CameraConfiguration } from './types';
-
-declare global {
-  // for fire event
-  interface HASSDomEvents {
-    'teste-event': undefined;
-    'add-new-camera': undefined;
-    'delete-camera': { cameraInfo: cameraInfo };
-    'edit-camera': { cameraInfo: cameraInfo };
-    'open-camera-brand-dialog': {
-      modelsInfo?: Array<cameraModel>;
-    };
-    'open-camera-add-camera-form': {
-      cameraModelInfo: cameraModel;
-      data: CameraConfiguration;
-      schema: schemaForm;
-      formType: string;
-      backEvent: backEventOptions;
-    };
-    'update-camera-dashboard': undefined;
-    'open-teste-dialog': undefined;
-  }
-}
+import { cameraCard } from './types';
+import { SubscribeMixin } from './subscribe-mixin';
+import { fetchCameraDatabase } from './data/websocket';
+import { CameraDatabase, CameraInfo } from './types';
+import './components/raceland-camera-card';
+import './components/new-camera-card';
 
 @customElement('alarm-panel')
-export class MyAlarmPanel extends CameraDashboardElement {
+export class MyAlarmPanel extends SubscribeMixin(LitElement) {
   @property({ attribute: false }) public hass!: HomeAssistant;
+
+  @property({ attribute: false }) public cameraDatabase!: CameraDatabase;
+
+  @property({ attribute: false }) public cameraList!: Array<CameraInfo>;
 
   @property({ attribute: false }) public narrow!: boolean;
 
-  @property({ attribute: false }) public registeredCameras!: any;
-
-  @property({ attribute: false }) public newCameras!: any;
-
-  @property({ attribute: false }) public cameraDatabase: any; //TODO I think I had interface for this. If not built it
-
-  @property({ attribute: false }) public cameraInfo!: cameraInfo;
-
-  @property({ attribute: false }) public cameraList!: any;
-
   @state() private _filter = '';
+
+  public hassSubscribe(): Promise<UnsubscribeFunc>[] {
+    //Connect to backend. Ensures update when backend data is modified
+    return [
+      this.hass!.connection.subscribeMessage(() => this._fetchData(), { type: 'camera_dashboard_config_updated' }),
+    ];
+  }
+
+  private async _fetchData(): Promise<void> {
+    if (!this.hass) {
+      return;
+    }
+    this.cameraList = await getCameraEntities(this.hass.states);
+  }
 
   async firstUpdated(changedProps) {
     super.firstUpdated(changedProps);
 
     this.cameraDatabase = await fetchCameraDatabase(this.hass);
     this.cameraList = await getCameraEntities(this.hass.states);
-
-    ////// These are teste event
-    this.addEventListener('teste-event', () => {
-      console.log('The EVENT was fired. Hurray!');
-    });
-
-    this.addEventListener('open-teste-dialog', () => {
-      showTestDialog(this);
-    });
-    //// -------------------------////
-
-    //this.cameraList = await fetchCameraList(this.hass);
-
-    //this.addEventListener('more-info-camera', ev => {
-    //  this._handleMoreInfoCamera(ev);
-    //});
-
-    //this.addEventListener('update-camera-dashboard', () => {
-    //  console.log('fired the event listener');
-    //  this._updateCameraDashboard();
-    //});
-
-    //this.addEventListener('add-new-camera', () => {
-    //  showCreateCameraDialog(this, { cameraDatabase: this.cameraDatabase.Manufacturer });
-    //});
-
-    //this.addEventListener('open-camera-add-camera-form', ev => {
-    //  showCameraDialog(this, {
-    //    cameraModelInfo: ev.detail.cameraModelInfo,
-    //    schema: ev.detail.schema,
-    //    data: ev.detail.data,
-    //    formType: ev.detail.formType,
-    //    backEvent: ev.detail.backEvent,
-    //  });
-    //});
-
-    // this.addEventListener('delete-camera', ev => {
-    //   showDeleteCameraDialog(this, { cameraInfo: ev.detail.cameraInfo });
-    // });
-
-    // this.addEventListener('edit-camera', ev => {
-    //   showEditCameraDialog(this, { cameraInfo: ev.detail.cameraInfo });
-    // });
 
     await loadHaForm();
     this.requestUpdate();
@@ -171,7 +111,11 @@ export class MyAlarmPanel extends CameraDashboardElement {
           >
             ${filteredCameras?.length === 0
               ? html`
-                  <new-camera-card .hass=${this.hass} .narrow=${this.narrow}></new-camera-card>
+                  <new-camera-card
+                    .hass=${this.hass}
+                    .narrow=${this.narrow}
+                    @click=${this._addCamera}
+                  ></new-camera-card>
                 `
               : filteredCameras?.map(
                   (cam_info: any) =>
@@ -198,17 +142,15 @@ export class MyAlarmPanel extends CameraDashboardElement {
   }
 
   private _addCamera() {
-    fireEvent(this, 'open-teste-dialog');
-    //fireEvent(this, 'add-new-camera');
+    fireEvent(this, 'show-dialog', {
+      dialogTag: 'add-camera-dialog',
+      dialogImport: () => import('./components/dialogs/add-camera-dialog'),
+      dialogParams: { cameraDatabase: this.cameraDatabase.manufacturer },
+    });
   }
 
   private _handleSearchChange(ev: CustomEvent) {
     this._filter = ev.detail.value;
-  }
-
-  protected async _updateCameraDashboard() {
-    this.registeredCameras = getCameraEntities(this.hass.states);
-    this.cameraList = await fetchCameraList(this.hass);
   }
 
   static get styles(): CSSResultGroup {

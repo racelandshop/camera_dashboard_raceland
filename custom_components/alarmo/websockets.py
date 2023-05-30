@@ -1,38 +1,12 @@
-"""Register WS API endpoints for Raceland Camera Dashboard."""
+"""Register Websockets for Raceland Camera Dashboard."""
 from __future__ import annotations
-import logging
 from jinja2 import Template
 
-from homeassistant.components import websocket_api
-from homeassistant.core import HomeAssistant
-import homeassistant.helpers.config_validation as cv
+import logging
 import voluptuous as vol
 
-from homeassistant.helpers import entity_registry as er
-
-from homeassistant.components.websocket_api import (
-    async_register_command,
-    ActiveConnection,
-)
-
-
-from .base import CameraBase
-from .const import (
-    DOMAIN,
-    CONFIG_STORAGE_FILE,
-    CONF_INTEGRATION,
-    CONF_RTSP_TRANSPORT,
-    CONF_INTEGRATION_DEFAULT,
-    CONF_CHANNEL,
-    CONF_STILL_URL_DOOR,
-    CONF_STREAM_SOURCE_DOOR,
-    CONF_URL_IP,
-    CONF_ADD_MULTI_CHANNELS
-)
-
-from .helpers import create_entity, load_from_storage, save_to_storage
-
-
+from homeassistant.components import websocket_api
+from homeassistant.core import (HomeAssistant, callback)
 from homeassistant.const import (
     CONF_ENTITY_ID,
     CONF_AUTHENTICATION,
@@ -52,14 +26,44 @@ from homeassistant.components.generic.const import (
     CONF_STILL_IMAGE_URL,
     CONF_STREAM_SOURCE,
 )
-
 from homeassistant.components.camera import DEFAULT_CONTENT_TYPE
+from homeassistant.helpers import entity_registry as er
+import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.dispatcher import (
+    async_dispatcher_connect,
+    async_dispatcher_send,
+)
+
+from homeassistant.components.websocket_api import (
+    async_register_command,
+    ActiveConnection,
+    decorators
+)
+
+
+
+from .base import CameraBase
+from .const import (
+    DOMAIN,
+    CONFIG_STORAGE_FILE,
+    CONF_INTEGRATION,
+    CONF_RTSP_TRANSPORT,
+    CONF_INTEGRATION_DEFAULT,
+    CONF_CHANNEL,
+    CONF_STILL_URL_DOOR,
+    CONF_STREAM_SOURCE_DOOR,
+    CONF_URL_IP,
+    CONF_ADD_MULTI_CHANNELS
+)
+from .helpers import create_entity, load_from_storage, save_to_storage
+
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_register_websockets(hass):
     """Execute the task."""
+    async_register_command(hass, handle_subscribe_updates)
     async_register_command(hass, send_camera_database_to_frontend)
     async_register_command(hass, register_camera)
     async_register_command(hass, register_model_camera)
@@ -68,6 +72,29 @@ async def async_register_websockets(hass):
     async_register_command(hass, send_camera_information_to_frontend)
     async_register_command(hass, send_camera_list_to_frontend)
 
+
+
+@callback
+@decorators.websocket_command({
+    vol.Required("type"): "camera_dashboard_config_updated",
+})
+@decorators.async_response
+async def handle_subscribe_updates(hass, connection, msg):
+    """Handle subscribe updates."""
+
+    @callback
+    def async_handle_event():
+        """Forward events to websocket."""
+        connection.send_message({
+            "id": msg["id"],
+            "type": "event",
+        })
+    connection.subscriptions[msg["id"]] = async_dispatcher_connect(
+        hass,
+        "camera_dashboard_update_frontend",
+        async_handle_event
+    )
+    connection.send_result(msg["id"])
 
 @websocket_api.websocket_command(
     {
@@ -137,6 +164,7 @@ async def register_camera(hass, connection, msg):
         camera_list.append(camera_info)
         await save_to_storage(hass, camera_list, key=CONFIG_STORAGE_FILE)
 
+    async_dispatcher_send(hass, "camera_dashboard_update_frontend") #TODO Change location of this, or at least add error handling
     connection.send_message(websocket_api.result_message(msg["id"], True))
 
 
@@ -196,6 +224,7 @@ async def register_model_camera(hass, connection, msg):
             else:
                 stream_source = None
 
+            ##TODO ... If else... with extend might be better both in reading and for eding
             camera_info = {
                 CONF_INTEGRATION: CONF_INTEGRATION_DEFAULT,
                 CONF_NAME: msg[CONF_NAME] + " " + data["channel"],
@@ -254,11 +283,10 @@ async def register_model_camera(hass, connection, msg):
         camera_info["unique_id"] = entity._attr_unique_id
         new_camera_information.append(camera_info)
 
-    # At the end add every camera information in bulk
     camera_list = await load_from_storage(hass, CONFIG_STORAGE_FILE)
     camera_list.extend(new_camera_information)
     await save_to_storage(hass, camera_list, key=CONFIG_STORAGE_FILE)
-
+    async_dispatcher_send(hass, "camera_dashboard_update_frontend") #TODO Change location of this, or at least add error handling
     connection.send_message(websocket_api.result_message(msg["id"], True))
 
 

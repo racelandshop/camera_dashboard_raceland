@@ -24,7 +24,7 @@ from .const import (
     CameraDashboardDisabledReason,
     CONFIG_STORAGE_FILE,
 )
-from .helpers import load_from_storage, load_camera_database
+from .helpers import load_from_storage
 from .panel import (
     async_register_panel,
     #async_unregister_panel,
@@ -44,6 +44,7 @@ async def async_initialize_integration(
     config_entry: ConfigEntry | None = None,
 ) -> bool:
     """Initialize the integration"""
+    _LOGGER.info("warning")
     if hass.data.get(DOMAIN) == None:
         hass.data[DOMAIN] = cameraBase = CameraBase()
     else:

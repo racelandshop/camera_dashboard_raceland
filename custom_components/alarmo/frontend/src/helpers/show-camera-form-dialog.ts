@@ -1,5 +1,5 @@
 import { fireEvent } from 'custom-card-helpers';
-import { cameraModel } from "../types";
+import { CameraModel } from "../types";
 // eslint-disable-next-line prettier/prettier
 import type { backEventOptions, schemaForm } from "../types";
 
@@ -8,7 +8,7 @@ export interface CameraFormsDialogParams {
   schema: schemaForm;
   formType: string;
   backEvent: backEventOptions;
-  cameraModelInfo?: cameraModel;
+  cameraModelInfo?: CameraModel;
 }
 
 export const importCameraFormDialog = () => import("../components/dialogs/formulary");

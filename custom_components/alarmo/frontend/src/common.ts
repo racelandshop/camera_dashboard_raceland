@@ -1,11 +1,16 @@
-import { cameraInfo } from './types';
+import { CameraInfo } from './types';
+import { computeDomain } from 'custom-card-helpers';
 
-export function computeDomain(entity: string): string {
-  return entity.split('.')[0];
-}
+/** Compute the object ID of a state. */
+export const computeObjectId = (entityId: string): string => entityId.substr(entityId.indexOf('.') + 1);
+
+export const computeStateName = (stateObj: any): string =>
+  stateObj.attributes.friendly_name === undefined
+    ? computeObjectId(stateObj.entity_id).replace(/_/g, ' ')
+    : stateObj.attributes.friendly_name || '';
 
 export function getCameraEntities(states) {
-  const cameras: cameraInfo[] = [];
+  const cameras: CameraInfo[] = [];
   for (const [key, value] of Object.entries(states)) {
     if (computeDomain(key) === 'camera') {
       cameras.push({

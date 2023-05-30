@@ -1,6 +1,6 @@
 import { css, CSSResultGroup } from 'lit';
 import { hacsButtonStyle, hacsIconStyle, hacsLinkStyle } from './element-styles';
-import { haStyle } from './ha_styles';
+import { haStyle } from './ha-styles';
 
 export const hacsCommonClasses = css`
   .warning {

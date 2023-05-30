@@ -5,14 +5,13 @@ import { HomeAssistant, fireEvent } from 'custom-card-helpers';
 import { classMap } from 'lit/directives/class-map';
 import memoizeOne from 'memoize-one';
 import Fuse from 'fuse.js';
-import '../camera-brand-icon-button';
-import '../search-input-round';
-import { CreateCameraDialogParams } from '../../helpers/show-create-camera-dialog';
 import { showCreateCameraDialog } from '../../helpers/show-create-camera-dialog';
 import { customSchema, customCameraExtraOptionSchema } from '../../schemas';
 import { localize } from '../../localize/localize';
 import { cancelIcon } from '../../icon_path';
-import { cameraBrand, cameraModel, CameraModelsDialogParams } from '../../types';
+import { CameraBrand, CameraModel, CameraDatabase } from '../../types';
+import '../camera-brand-icon-button';
+import '../search-input-round';
 
 export const haStyleDialog = css`
   //TODO: If this is a const import from a file instead of defining it everytime
@@ -56,20 +55,23 @@ export const haStyleDialog = css`
 
 @customElement('add-camera-dialog')
 export class HuiCreateDialogCamera extends LitElement {
-  @property({ attribute: false }) protected hass!: HomeAssistant;
+  @property({ attribute: false }) public hass!: HomeAssistant;
 
-  @state() private _cameraDatabase: any;
+  @property({ attribute: false }) public cameraDatabase!: CameraDatabase;
 
   @state() private _currTabIndex = 0;
 
   @state() private _filter = '';
 
-  public async showDialog(params: CreateCameraDialogParams): Promise<void> {
-    this._cameraDatabase = params.cameraDatabase;
+  @state() private open!: boolean;
+
+  public async showDialog(params): Promise<void> {
+    this.open = true;
+    this.cameraDatabase = params.cameraDatabase;
   }
 
   public closeDialog(): boolean {
-    this._cameraDatabase = undefined;
+    this.open = false;
     this._currTabIndex = 0;
     return true;
   }
@@ -79,7 +81,7 @@ export class HuiCreateDialogCamera extends LitElement {
       return cameraDatabase;
     }
     let filteredBrands = cameraDatabase;
-    const options: Fuse.IFuseOptions<cameraBrand> = {
+    const options: Fuse.IFuseOptions<CameraBrand> = {
       keys: ['name'],
       isCaseSensitive: false,
       minMatchCharLength: 1,
@@ -91,11 +93,12 @@ export class HuiCreateDialogCamera extends LitElement {
   });
 
   protected render(): TemplateResult {
-    if (!this._cameraDatabase) {
+    if (!this.open) {
       return html``;
     }
 
-    const cameraDatabase = this._filterBrands(this._cameraDatabase, this._filter);
+    const cameraDatabase = this._filterBrands(this.cameraDatabase, this._filter);
+
     return html`
       <ha-dialog
         open
@@ -133,7 +136,7 @@ export class HuiCreateDialogCamera extends LitElement {
             </div>
 
             <div class="brand-list">
-              ${cameraDatabase.map((cameraBrandInfo: cameraBrand) => {
+              ${cameraDatabase.map((cameraBrandInfo: CameraBrand) => {
                 return html`
                   <camera-brand-icon-button
                     .cameraBrandInfo=${cameraBrandInfo}
@@ -161,13 +164,13 @@ export class HuiCreateDialogCamera extends LitElement {
     `;
   }
 
-  private _openCameraBrandDialog(ev, cameraModelsList: CameraModelsDialogParams) {
+  private _openCameraBrandDialog(ev, cameraModelsList: CameraModel[]) {
     const element = ev.target as HTMLElement;
     fireEvent(element, 'show-dialog', {
       dialogTag: 'camera-brand-dialog',
       dialogImport: () => import('./add-camera-model-dialog'),
       dialogParams: {
-        cameraDatabase: this._cameraDatabase,
+        cameraDatabase: this.cameraDatabase,
         modelsInfo: cameraModelsList,
       },
     });
@@ -177,7 +180,7 @@ export class HuiCreateDialogCamera extends LitElement {
 
   private _addCustomCamera(ev) {
     const formularyData = {
-      cameraModelInfo: {} as cameraModel,
+      cameraModelInfo: {} as CameraModel,
       schema: {
         header: { title: localize('common.add_camera') },
         body: customSchema,
@@ -189,7 +192,7 @@ export class HuiCreateDialogCamera extends LitElement {
       },
       data: {},
       formType: 'custom_camera',
-      backEvent: { call: showCreateCameraDialog, eventData: { cameraDatabase: this._cameraDatabase } },
+      backEvent: { call: showCreateCameraDialog, eventData: { cameraDatabase: this.cameraDatabase } },
     };
 
     const element = ev.target as HTMLElement;
@@ -203,7 +206,7 @@ export class HuiCreateDialogCamera extends LitElement {
   }
 
   private _handleSearchChange(ev: CustomEvent) {
-    //Check hui-card-picker more information is required
+    //Refer hui-card-picker if more more information is required
     this._filter = ev.detail.value;
   }
 
