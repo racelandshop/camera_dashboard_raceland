@@ -1,0 +1,6 @@
+# Strictly for tests
+pytest-homeassistant-custom-component==0.12.29
+
+# Required for tests and dev
+home-assistant-frontend
+homeassistant
