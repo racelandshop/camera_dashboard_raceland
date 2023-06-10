@@ -6,7 +6,7 @@ custom_components/camera_dashboard_raceland/frontend/build
 .coverage
 coverage.xml
 htmlcov
-venv
+venv/
 
 
 site
