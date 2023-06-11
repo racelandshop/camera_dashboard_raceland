@@ -1,6 +1,6 @@
 # Strictly for tests
 pytest-homeassistant-custom-component==0.12.29
 
-# Required for tests and dev
+# Required for dev
+homeassistant==2022.12.0
 home-assistant-frontend
-homeassistant
