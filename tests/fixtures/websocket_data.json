@@ -1,0 +1,240 @@
+{
+    "register_default_camera": {
+        "input": {
+            "type": "raceland-camera-dashboard/register_camera",
+            "id": 123,
+            "integration": "non-generic",
+            "name": "Camera 1",
+            "still_image_url": "http://example.com/image.jpg",
+            "stream_source": "rtsp://example.com/stream",
+            "username": "admin",
+            "password": "password",
+            "authentication": "digest",
+            "verify_ssl": false,
+            "rtsp_transport": "tcp",
+            "framerate": 10
+        },
+        "output": {
+            "integration": "non-generic",
+            "name": "Camera 1",
+            "still_image_url": "http://example.com/image.jpg",
+            "stream_source": "rtsp://example.com/stream",
+            "username": "admin",
+            "password": "password",
+            "authentication": "digest",
+            "verify_ssl": false,
+            "rtsp_transport": "tcp",
+            "framerate": 10
+        }
+    },
+    "register_single_model_camera": {
+        "input": {
+            "type": "raceland-camera-dashboard/register_model_camera",
+            "id": 123,
+            "name": "model camera",
+            "still_image_url": "http://{{ ip }}{{ still_url_door }}/ISAPI/Streaming/channels/{{ channel }}01/picture",
+            "stream_source": "rtsp://{{ ip }}{{ stream_source_door }}/Streaming/Channels/{{ channel }}01",
+            "username": "admin",
+            "password": "password",
+            "ip": "localhost",
+            "still_url_door": "80",
+            "stream_source_door": "554",
+            "channel": 2,
+            "add_multi_channels": false,
+            "authentication": "digest",
+            "verify_ssl": true,
+            "rtsp_transport": "tcp",
+            "framerate": 10
+        },
+        "output": {
+            "integration": "generic",
+            "name": "model camera",
+            "username": "admin",
+            "password": "password",
+            "authentication": "digest",
+            "verify_ssl": true,
+            "rtsp_transport": "tcp",
+            "framerate": 10,
+            "still_image_url": "http://localhost:80/ISAPI/Streaming/channels/201/picture",
+            "stream_source": "rtsp://localhost:554/Streaming/Channels/201"
+        }
+    },
+    "register_multiple_model_camera": {
+        "input": {
+            "type": "raceland-camera-dashboard/register_model_camera",
+            "id": 123,
+            "name": "model camera",
+            "still_image_url": "http://{{ ip }}{{ still_url_door }}/ISAPI/Streaming/channels/{{ channel }}01/picture",
+            "stream_source": "rtsp://{{ ip }}{{ stream_source_door }}/Streaming/Channels/{{ channel }}01",
+            "username": "admin",
+            "password": "password",
+            "ip": "localhost",
+            "still_url_door": "80",
+            "stream_source_door": "554",
+            "channel": 3,
+            "add_multi_channels": true,
+            "authentication": "digest",
+            "verify_ssl": true,
+            "rtsp_transport": "tcp",
+            "framerate": 10
+        },
+        "output": [
+            {
+                "integration": "generic",
+                "name": "model camera 1",
+                "username": "admin",
+                "password": "password",
+                "authentication": "digest",
+                "verify_ssl": true,
+                "rtsp_transport": "tcp",
+                "framerate": 10,
+                "still_image_url": "http://localhost:80/ISAPI/Streaming/channels/101/picture",
+                "stream_source": "rtsp://localhost:554/Streaming/Channels/101"
+            },
+            {
+                "integration": "generic",
+                "name": "model camera 2",
+                "username": "admin",
+                "password": "password",
+                "authentication": "digest",
+                "verify_ssl": true,
+                "rtsp_transport": "tcp",
+                "framerate": 10,
+                "still_image_url": "http://localhost:80/ISAPI/Streaming/channels/201/picture",
+                "stream_source": "rtsp://localhost:554/Streaming/Channels/201"
+            },
+            {
+                "integration": "generic",
+                "name": "model camera 3",
+                "username": "admin",
+                "password": "password",
+                "authentication": "digest",
+                "verify_ssl": true,
+                "rtsp_transport": "tcp",
+                "framerate": 10,
+                "still_image_url": "http://localhost:80/ISAPI/Streaming/channels/301/picture",
+                "stream_source": "rtsp://localhost:554/Streaming/Channels/301"
+            }
+        ]
+    },
+    "edit_camera": {
+        "input": {
+            "type": "raceland-camera-dashboard/edit_camera",
+            "id": 123,
+            "integration": "generic",
+            "entityID": "camera.camera",
+            "name": "Camera",
+            "unique_id": "unique",
+            "still_image_url": "http://example.com/image.jpg",
+            "stream_source": "rtsp://example.com/stream",
+            "username": "admin",
+            "password": "password",
+            "authentication": "digest",
+            "verify_ssl": false,
+            "rtsp_transport": "tcp",
+            "framerate": 10
+        },
+        "storage_data": [
+            {
+                "integration": "generic",
+                "name": "update",
+                "still_image_url": "http://example.com/image.jpg",
+                "unique_id": "unique"
+            },
+            {
+                "integration": "generic",
+                "name": "keep",
+                "still_image_url": "https://localhost/keep_me",
+                "authentication": "basic",
+                "verify_ssl": false,
+                "rtsp_transport": null,
+                "framerate": 10,
+                "unique_id": "unique_2"
+            }
+        ],
+        "output": [
+            {
+                "integration": "generic",
+                "name": "keep",
+                "still_image_url": "https://localhost/keep_me",
+                "authentication": "basic",
+                "verify_ssl": false,
+                "rtsp_transport": null,
+                "framerate": 10,
+                "unique_id": "unique_2"
+            },
+            {
+                "integration": "generic",
+                "name": "Camera",
+                "still_image_url": "http://example.com/image.jpg",
+                "stream_source": "rtsp://example.com/stream",
+                "username": "admin",
+                "password": "password",
+                "authentication": "digest",
+                "verify_ssl": false,
+                "rtsp_transport": "tcp",
+                "framerate": 10,
+                "unique_id": "unique"
+            }
+        ]
+    }, 
+    "delete_camera": {
+        "input": {
+            "type": "raceland-camera-dashboard/remove_camera",
+            "entityID": "camera.camera",
+            "unique_id": "delete",
+            "id": 123
+        },
+        "storage_data": [
+            {
+                "integration": "generic",
+                "name": "delete",
+                "still_image_url": "http://example.com/image.jpg",
+                "unique_id": "delete"
+            },
+            {
+                "integration": "generic",
+                "name": "keep",
+                "still_image_url": "http://example.com/image.jpg",
+                "unique_id": "keep"
+            }
+        ],
+        "output": [
+            {
+                "integration": "generic",
+                "name": "keep",
+                "still_image_url": "http://example.com/image.jpg",
+                "unique_id": "keep"
+            }
+        ]
+    },
+    "fetch_camera_information": {
+        "input": {
+            "type": "raceland-camera-dashboard/fetch_camera_information",
+            "id": 123,
+            "entity_id": "camera.camera"
+        },
+        "storage_data": [
+            {
+                "integration": "generic",
+                "name": "camera send",
+                "still_image_url": "http://example.com/image.jpg",
+                "unique_id": "unique"
+            },
+            {
+                "integration": "generic",
+                "name": "keep",
+                "still_image_url": "http://example.com/image.jpg",
+                "unique_id": "keep"
+            }
+        ],
+        "output":
+            {
+                "integration": "generic",
+                "entityID": "camera.camera",
+                "name": "camera send",
+                "still_image_url": "http://example.com/image.jpg",
+                "unique_id": "unique"
+            }
+    }
+}

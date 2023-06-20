@@ -1,0 +1,61 @@
+{
+    "default": {
+        "camera_input_data":  {
+            "integration": "generic",
+            "username": "owner",
+            "password": "pass",
+            "authentication": "digest",
+            "limit_refetch_to_url_change": false,
+            "content_type": "image/jpeg",
+            "rtsp_transport": "tcp",
+            "framerate": 60,
+            "verify_ssl": true,
+            "still_image_url": "http://localhost:80/ISAPI/Streaming/channels/101/picture",
+            "stream_source": "rtsp://localhost:554/Streaming/Channels/101",
+            "name": "Camera"
+        }, 
+        "camera_output_data":  {
+            "integration": "generic",
+            "username": "owner",
+            "password": "pass",
+            "authentication": "digest",
+            "limit_refetch_to_url_change": false,
+            "content_type": "image/jpeg",
+            "rtsp_transport": "tcp",
+            "framerate": 60,
+            "verify_ssl": true,
+            "still_image_url": "http://localhost:80/ISAPI/Streaming/channels/101/picture",
+            "stream_source": "rtsp://localhost:554/Streaming/Channels/101",
+            "stream_url_complete": "rtsp://owner:pass@localhost:554/Streaming/Channels/101",
+            "name": "Camera"
+        }
+    },
+    "no_stream_source": {
+        "camera_input_data":  {
+            "integration": "generic",
+            "username": "owner",
+            "password": "owner",
+            "authentication": "digest",
+            "limit_refetch_to_url_change": false,
+            "content_type": "image/jpeg",
+            "rtsp_transport": "tcp",
+            "framerate": 60,
+            "verify_ssl": true,
+            "still_image_url": "http://localhost:80/ISAPI/Streaming/channels/101/picture",
+            "name": "Camera"
+        }, 
+        "camera_output_data":  {
+            "integration": "generic",
+            "username": "owner",
+            "password": "owner",
+            "authentication": "digest",
+            "limit_refetch_to_url_change": false,
+            "content_type": "image/jpeg",
+            "rtsp_transport": "tcp",
+            "framerate": 60,
+            "verify_ssl": true,
+            "still_image_url": "http://localhost:80/ISAPI/Streaming/channels/101/picture",
+            "name": "Camera"
+        }
+    }
+}

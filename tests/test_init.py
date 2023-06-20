@@ -2,7 +2,7 @@
 import pytest
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from unittest.mock import patch, MagicMock, AsyncMock, Mock
+from unittest.mock import patch, MagicMock
 
 from custom_components.camera_dashboard_raceland import async_initialize_integration
 from custom_components.camera_dashboard_raceland.const import DOMAIN
