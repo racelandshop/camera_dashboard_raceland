@@ -138,7 +138,6 @@ export class HuiCreateDialogCameraFormulary extends LitElement implements HTMLEl
   private _valueChanged(ev: CustomEvent): void {
     const config = removeTrailingSpacesInput(ev.detail.value);
     this.data = { ...this.data, ...config };
-    console.log(this.data);
   }
 
   private validInputCustom() {

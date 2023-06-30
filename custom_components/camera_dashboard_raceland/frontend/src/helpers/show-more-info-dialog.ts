@@ -9,7 +9,7 @@ export const importMoreInfoCameraDialog = () => import('../components/dialogs/ha
 export const showMoreInfoDialog = (element: HTMLElement, moreInfoParams: MoreInfoParams): void => {
   fireEvent(element, 'show-dialog', {
     dialogTag: 'ha-more-info-dialog-camera',
-    dialogImport: () => importMoreInfoCameraDialog,
+    dialogImport: importMoreInfoCameraDialog,
     dialogParams: moreInfoParams,
   });
 };

@@ -42,13 +42,14 @@ export class MoreInfoDialog extends LitElement {
     const entityId = this._entityId;
     const stateObj = this.hass.states[entityId] as any;
 
+    stateObj.attributes.streamType = stateObj.attributes.streamType ? stateObj.attributes.streamType : 'video';
+
     if (!stateObj) {
       return html``;
     }
 
     const domain = computeDomain(entityId);
     const name = computeStateName(stateObj) || ' ';
-
     return html`
       <ha-dialog open @closed=${this.closeDialog} .heading=${name} hideActions data-domain=${domain}>
         <div slot="heading" class="heading">
@@ -62,28 +63,9 @@ export class MoreInfoDialog extends LitElement {
             ></ha-icon-button>
             <div slot="title" class="main-title" .title=${name}>${name}</div>
           </ha-header-bar>
-          <mwc-tab-bar .activeIndex=${this._currTabIndex} @MDCTabBar:activated=${this._handleTabChanged}>
-            <mwc-tab .label=${this.hass.localize('ui.dialogs.more_info_control.details')} dialogInitialFocus></mwc-tab>
-            <mwc-tab .label=${this.hass.localize('ui.dialogs.more_info_control.history')}></mwc-tab>
-          </mwc-tab-bar>
         </div>
         <div class="content" tabindex="-1" dialogInitialFocus>
-          ${cache(
-            this._currTabIndex === 0
-              ? html`
-                  <more-info-content .stateObj=${stateObj} .hass=${this.hass}></more-info-content>
-                  <p>
-                    ${this.hass.localize('ui.dialogs.more_info_control.restored.not_provided')}
-                  </p>
-                  <p>
-                    ${this.hass.localize('ui.dialogs.more_info_control.restored.remove_intro')}
-                  </p>
-                  <mwc-button class="warning" @click=${this._removeEntity}>
-                    ${this.hass.localize('ui.dialogs.more_info_control.restored.remove_action')}
-                  </mwc-button>
-                `
-              : ''
-          )}
+          <more-info-content .hass=${this.hass} .stateObj=${stateObj}></more-info-content>
         </div>
       </ha-dialog>
     `;
