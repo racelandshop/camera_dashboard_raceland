@@ -1,5 +1,3 @@
-//import '@material/mwc-menu';
-//import '@material/mwc-list/mwc-list-item';
 import { ActionDetail } from '@material/mwc-list/mwc-list-foundation';
 import { mdiDotsVertical, mdiDelete, mdiPencil } from '@mdi/js';
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from 'lit';
@@ -25,7 +23,6 @@ export class CameraButtonMenu extends LitElement {
           <ha-svg-icon .path=${mdiPencil}></ha-svg-icon>
           ${localize('common.edit')}
         </mwc-list-item>
-        <!-- <div class="line"></div> -->
         <mwc-list-item class="delete-item">
           <ha-svg-icon .path=${mdiDelete}></ha-svg-icon>
           ${localize('common.delete')}

@@ -1,53 +1,51 @@
 {
   "common": {
-    "camera": "câmera",
-    "edit": "Editar",
-    "delete": "Apagar",
+    "add_camera": "Adicionar Câmara",
     "back": "Voltar",
-    "confirm": "confirmar",
-    "add_camera": "Adicionar Câmera",
-    "edit_camera": "Editar Câmera",
-    "delete_camera": "Apagar Câmera",
-    "custom_camera": "Câmera Personalizada",
+    "camera": "câmara",
+    "confirm": "Confirmar",
+    "custom_camera": "Câmara Personalizada",
+    "delete": "Apagar",
+    "delete_camera": "Apagar Câmara",
+    "edit": "Editar",
+    "edit_camera": "Editar Câmara",
     "go_back": "Voltar"
   },
-  "dialog_text":{
-    "verify_action": "Esta ação não pode ser revertida"
-  },
-  "search": {
-    "cameras": "Procurar câmaras",
-    "brands": "Procurar Marcas",
-    "models": "Procurar Modelos"
+  "dialog_text": {
+    "verify_action": "Esta ação não pode ser desfeita"
   },
   "form": {
-    "form": {
-      "integration": "Selecionar tipo de Integração",
-      "name": "Nome da Câmara (Obrigatório)",
-      "still_image_url": "URL da Imagem Estática",
-      "stream_source": "URL do Stream",
-      "username": "Utilizador",
-      "password": "Palavra-passe",
-      "record_video_of_camera": "Gravar Vídeo da Câmara",
-      "ip": "IP",
-      "number_of_cameras": "Número de câmaras",
-      "advanced_options": "Opções Avançadas",
-      "authentication": "Selecionar Autenticação",
-      "verify_ssl": "Verificar SSL",
-      "rtsp_transport": "Selecionar Transporte RTSP",
-      "framerate": "Taxa de Fotogramas",
-      "channel": "Canal",
-      "still_url_door": "URL da Imagem Estática (Porta)",
-      "stream_source_door": "URL do Stream (Porta)",
-      "add_multi_channels": "Adicionar todos os canais?",
-      "issues": {
-        "missing_integration": "Selecionar um tipo de integração",
-        "name": "Nome da câmara é obrigatório",
-        "duplicated_camera_name": "Já existe uma câmara com esse nome",
-        "static_stream_source_missing": "Nenhuma URL estática ou de stream fornecida",
-        "ip_missing": "Nenhum endereço IP fornecido",
-        "n_cameras": "Número de câmaras inválido",
-        "unspecified_backend_error": "Problema no processamento do servidor. Verifique o ficheiro de registo para mais informações"
-      }
-    }
+    "add_multi_channels": "Adicionar todos os canais?",
+    "advanced_options": "Opções Avançadas",
+    "authentication": "Selecionar Autenticação",
+    "channel": "Canal",
+    "framerate": "Taxa de fotogramas",
+    "integration": "Selecionar tipo de integração",
+    "ip": "IP",
+    "issues": {
+      "duplicated_camera_name": "Já existe uma câmara com esse nome",
+      "ip_missing": "Não foi fornecido um endereço IP",
+      "missing_integration": "Selecione um tipo de integração",
+      "n_cameras": "O número de câmaras não é válido",
+      "name": "O nome da câmara é obrigatório",
+      "static_stream_source_missing": "URL estática ou de stream não fornecida",
+      "unspecified_backend_error": "Problema no processamento do backend. Verifique o arquivo de log para mais informações"
+    },
+    "name": "Nome da Câmara (Obrigatório)",
+    "number_of_cameras": "Número de câmaras",
+    "password": "Palavra-passe",
+    "record_video_of_camera": "Gravar Vídeo da Câmara",
+    "rtsp_transport": "Selecionar Transporte RTSP",
+    "still_image_url": "URL da Imagem Estática",
+    "still_url_door": "Imagem Estática da Porta",
+    "stream_source": "URL de Stream",
+    "stream_source_door": "Stream da Porta",
+    "username": "Nome de Utilizador",
+    "verify_ssl": "Verificar SSL"
+  },
+  "search": {
+    "brands": "Procurar Marcas",
+    "cameras": "Procurar câmaras",
+    "models": "Procurar Modelos"
   }
 }

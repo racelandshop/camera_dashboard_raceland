@@ -4,7 +4,7 @@ import { RippleHandlers } from "@material/mwc-ripple/ripple-handlers";
 import { mdiPlus } from "@mdi/js";
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
 import { customElement, property, state, queryAsync, eventOptions } from "lit/decorators";
-import { fireEvent, HomeAssistant} from "custom-card-helpers"
+import { HomeAssistant} from "custom-card-helpers"
 import { localize } from "../localize/localize";
 
 

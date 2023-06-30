@@ -8,7 +8,7 @@ import { cancelIcon } from '../../icon_path';
 import { sendCameraInformation, sendCameraBrandInformation } from '../../data/websocket';
 import { CameraFormsDialogParams } from '../../helpers/show-camera-form-dialog';
 import { localize } from '../../localize/localize';
-import { BackEventOptions, schemaForm, CameraConfiguration, CameraCard, CameraModel } from '../../types';
+import { BackEventOptions, SchemaForm, CameraConfiguration, CameraCard, CameraModel } from '../../types';
 import { haStyleDialog } from '../../styles/ha-styles';
 
 @customElement('raceland-formulary')
@@ -25,7 +25,7 @@ export class HuiCreateDialogCameraFormulary extends LitElement implements HTMLEl
 
   @property({ type: String }) public formType!: string;
 
-  @property({ attribute: false }) schema!: schemaForm;
+  @property({ attribute: false }) schema!: SchemaForm;
 
   @property({ attribute: false }) protected registeredCameras!: Array<any>;
 
@@ -46,6 +46,7 @@ export class HuiCreateDialogCameraFormulary extends LitElement implements HTMLEl
   public closeDialog(): boolean {
     this._currTabIndex = 0;
     this.open = undefined;
+    this.validIssue = undefined;
     return true;
   }
 
@@ -68,7 +69,7 @@ export class HuiCreateDialogCameraFormulary extends LitElement implements HTMLEl
         <div class="cancel">
           <div slot="heading" class="heading">
             <ha-header-bar id="bar">
-              <div slot="title" class="main-title" .title=${name}>
+              <div slot="title" class="main-title">
                 ${localize('common.add_camera')}
               </div>
               <ha-icon-button
@@ -161,16 +162,14 @@ export class HuiCreateDialogCameraFormulary extends LitElement implements HTMLEl
       this.validIssue = localize('form.issues.ip_missing');
       return false;
     }
-
-    if (isNaN(Number(this.data.channel)) || (this.data.channel !== undefined && this.data.channel <= 0)) {
+    if (isNaN(Number(this.data.channel)) || (this.data.channel !== undefined && Number(this.data.channel) <= 0)) {
       this.validIssue = localize('form.issues.n_cameras');
       return false;
     }
 
     let cameraNames: Array<string> = [];
-    const channel: number = parseInt(this.data.channel);
-    if (this.data.channel !== undefined && channel > 1) {
-      cameraNames = Array.from({ length: channel }, (_, k) => `${this.data.name} ${k + 1}`);
+    if (this.data.channel !== undefined && Number(this.data.channel) > 1) {
+      cameraNames = Array.from({ length: Number(this.data.channel) }, (_, k) => `${this.data.name} ${k + 1}`);
     } else {
       cameraNames = [this.data.name];
     }
@@ -293,7 +292,7 @@ export class HuiCreateDialogCameraFormulary extends LitElement implements HTMLEl
           font-style: normal;
           font-size: 12px;
           color: #e41111;
-          padding: 1% 1% 1% 12%;
+          padding: 1% 1% 1% 1%;
           text-align: left;
           width: 100%;
         }
@@ -301,10 +300,6 @@ export class HuiCreateDialogCameraFormulary extends LitElement implements HTMLEl
         .icon-back {
           width: 30px;
           height: 30px;
-        }
-        .form {
-          /* margin-left: 10%;
-          margin-right: 10%; */
         }
 
         .header-text {

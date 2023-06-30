@@ -1,7 +1,6 @@
 import { mdiClose } from '@mdi/js';
 import { css, html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators';
-import { cache } from 'lit/directives/cache';
 import { computeDomain, HomeAssistant } from 'custom-card-helpers';
 import { haStyleDialog } from '../../styles/ha-styles';
 import { computeStateName } from '../../common';

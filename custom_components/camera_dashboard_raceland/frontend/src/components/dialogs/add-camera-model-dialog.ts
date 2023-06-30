@@ -74,7 +74,7 @@ export class HuiCreateDialogCameraBrand extends LitElement {
         <div class="cancel">
           <div slot="heading" class="heading">
             <ha-header-bar id="bar">
-              <div slot="title" class="main-title" .title=${name}>
+              <div slot="title" class="main-title" }>
                 ${localize('common.add_camera')}
               </div>
               <ha-icon-button

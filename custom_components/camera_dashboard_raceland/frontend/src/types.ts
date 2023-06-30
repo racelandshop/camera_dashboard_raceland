@@ -19,11 +19,11 @@ export interface CameraBrand {
 
 export interface CameraModel {
   version: string;
-  options: Map<string, cameraOption>;
+  options: Map<string, CameraOption>;
   supportChannels: boolean;
 }
 
-export interface cameraOption {
+export interface CameraOption {
   version: string;
   source?: string;
   url?: string;
@@ -35,7 +35,7 @@ export interface BackEventOptions {
   eventData: any;
 }
 
-export interface schemaForm {
+export interface SchemaForm {
   header: { title: string };
   body: any; //HaFormSchema[];
   extra_options?: any;

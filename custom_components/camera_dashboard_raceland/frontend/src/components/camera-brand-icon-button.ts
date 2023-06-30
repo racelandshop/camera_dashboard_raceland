@@ -8,7 +8,7 @@ export class CameraBrandIconButton extends LitElement {
 
   @property({ type: String }) svgPath?: string; //Check How I can fecth the icon from local storage
 
-  @property({ type: String }) label? = '';
+  @property({ type: String }) label = '';
 
   @property({ attribute: false }) cameraModelList?: Array<CameraModel>;
 

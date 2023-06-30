@@ -10,7 +10,7 @@ import { updateCameraInformation } from '../../data/websocket';
 import { customSchema, customCameraExtraOptionSchema } from '../../schemas';
 import { localize } from '../../localize/localize';
 import { getCameraEntities, removeTrailingSpacesInput } from '../../common';
-import { BackEventOptions, schemaForm, CameraCard, CameraInfo } from '../../types';
+import { BackEventOptions, SchemaForm, CameraCard, CameraInfo } from '../../types';
 import { haStyleDialog } from '../../styles/ha-styles';
 import '../camera-brand-icon-button';
 import '../search-input-round';
@@ -29,7 +29,7 @@ export class HuiEditDialogCamera extends LitElement {
 
   @property({ attribute: false }) protected registeredCameras!: Array<any>;
 
-  @property({ attribute: false }) schema!: schemaForm;
+  @property({ attribute: false }) schema!: SchemaForm;
 
   @state() private _currTabIndex = 0;
 
@@ -87,7 +87,7 @@ export class HuiEditDialogCamera extends LitElement {
         <div class="cancel">
           <div slot="heading" class="heading">
             <ha-header-bar id="bar">
-              <div slot="title" class="main-title" .title=${name}>
+              <div slot="title" class="main-title">
                 ${localize('common.edit_camera')}
               </div>
               <ha-icon-button
@@ -261,7 +261,7 @@ export class HuiEditDialogCamera extends LitElement {
           font-style: normal;
           font-size: 12px;
           color: #e41111;
-          padding: 1% 1% 1% 12%;
+          padding: 1% 1% 1% 1%;
           text-align: left;
           width: 100%;
         }

@@ -1,6 +1,6 @@
 import { mdiClose, mdiMagnify } from '@mdi/js';
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from 'lit';
-import { customElement, property, query } from 'lit/decorators';
+import { customElement, property } from 'lit/decorators';
 import { HomeAssistant, fireEvent } from 'custom-card-helpers';
 
 @customElement('search-input-round')

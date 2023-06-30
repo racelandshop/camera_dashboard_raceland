@@ -61,7 +61,7 @@ export const customCameraExtraOptionSchema = [
     name: 'rtsp_transport',
     selector: {
       select: {
-        options: ['None','tcp', 'udp', 'udp_multicast', 'http'],
+        options: ['None', 'tcp', 'udp', 'udp_multicast', 'http'],
         mode: 'dropdown',
       },
     },
